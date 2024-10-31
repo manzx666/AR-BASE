@@ -1,0 +1,32 @@
+{
+  "name": "AR-STORE",
+  "version": "1.0.0",
+  "description": "Simple Bot WhatsApp Using Baileys",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js --max-old-space-size=8192",
+    "dev": "nodemon src/index.js", 
+    "pm2": "pm2 start src/index.js --name bot-sw -- --max-old-space-size=8192",
+    "restart:pm2": "pm2 restart bot-sw",
+    "stop:pm2": "pm2 stop bot-sw",
+    "lint": "eslint .",
+    "test": "echo \"No test specified\" && exit 0"
+  },
+  "author": "Arifzyn19",
+  "license": "MIT",
+  "dependencies": {
+    "@hapi/boom": "latest",
+    "@whiskeysockets/baileys": "latest",
+    "dotenv": "^16.4.5",
+    "mongoose": "^8.7.3",
+    "pino": "latest",
+    "readline": "latest"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22",
+    "eslint": "^8.50.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
