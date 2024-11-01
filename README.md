@@ -51,7 +51,7 @@ cp .env.example .env
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/AR-BASE.git
+   git clone https://github.com/Arifzyn19/AR-BASE.git
    cd AR-BASE
    ```
 
