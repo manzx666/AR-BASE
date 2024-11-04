@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const fs = require("fs");
 const path = require("path");
-const config = require("../configs/config");
+const config = require("./config");
 
 mongoose.set("strictQuery", false);
 let Database;

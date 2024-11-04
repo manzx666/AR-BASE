@@ -1,13 +1,19 @@
 const config = require("./configs/config");
 const { delay, jidNormalizedUser } = require("@whiskeysockets/baileys");
 const { createClient, getWAVersion } = require("./lib/client");
-const { handleMessagesUpsert } = require("./events/messageHandler");
+
 const fs = require("fs");
 
-const groupEvents = require("./events/groupEvents");
-const messageHandler = require("./events/messageHandler");
-const connectionUpdate = require("./events/connectionUpdate");
-const Database = require("./lib/database");
+const {
+  plugins,
+  loadPluginFiles,
+  pluginFolder,
+  pluginFilter,
+} = require("./configs/plugins");
+const groupEvents = require("./events/groups");
+const messageHandler = require("./events/messages");
+const connectionUpdate = require("./events/connection");
+const Database = require("./configs/database");
 
 const pairingCode = config.pairingNumber;
 const pathContacts = `./${config.session}/contacts.json`;
@@ -46,6 +52,15 @@ async function WAStart() {
     code = code?.match(/.{1,4}/g)?.join("-") || code;
     console.log(`⚠︎ Kode WhatsApp kamu: ` + code);
   }
+
+  await loadPluginFiles(pluginFolder, pluginFilter, {
+    logger: client.logger,
+    recursiveRead: true,
+  })
+    .then((a) =>
+      client.logger.info("Plugins Loader Success!\n", Object.keys(a)),
+    )
+    .catch(console.error);
 
   connectionUpdate(client, WAStart);
   groupEvents(client, store);

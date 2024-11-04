@@ -1,11 +1,11 @@
-const { serialize } = require("../lib/serialize");
+const { Serialize } = require("../lib/serialize.js");
 const { getRandomEmoji } = require("../lib/emoji");
 const { handleMessagesUpsert } = require("../handler");
 
 module.exports = async (client, store) => {
   client.ev.on("messages.upsert", async ({ messages }) => {
     if (!messages[0].message) return;
-    let m = await serialize(client, messages[0], store);
+    let m = await Serialize(client, messages[0], store);
 
     if (store.groupMetadata && Object.keys(store.groupMetadata).length === 0)
       store.groupMetadata = await client.groupFetchAllParticipating();

@@ -1,12 +1,12 @@
-const config = require("./configs/config");
+const config = require("./configs/config.js");
+const { ArifzynAPI } = require("@arifzyn/api");
 const { delay, jidNormalizedUser } = require("@whiskeysockets/baileys");
-const util = require("util");
 const { exec } = require("child_process");
-const { loadCommands, watchCommands, commands } = require("./lib/commands");
+const { plugins } = require("./configs/plugins.js");
+const util = require("util");
 const Color = require("./lib/color.js");
 
-loadCommands();
-watchCommands();
+const API = new ArifzynAPI();
 
 const handleEvalCommand = async (m) => {
   let evalCmd = "";
@@ -33,17 +33,17 @@ const handleExecCommand = async (m) => {
 
 const handleMessagesUpsert = async (client, store, m) => {
   try {
-    let quoted = m.isQuoted ? m.quoted : m;
-    if (m.isBot || (config.self && !m.isOwner)) return;
-    if (m.from && db.groups[m.from]?.mute && !m.isOwner) return;
+    await require("./configs/localdb").loadDatabase(m);
 
-    await require("./lib/loadDB").loadDatabase(m);
+    let quoted = m.isQuoted ? m.quoted : m;
+    if (m.isBaileys || (config.self && !m.isOwner)) return;
+    if (m.chat && m.isGroup && db.groups[m.chat]?.mute && !m.isOwner) return;
 
     if (m.message) {
       console.log(
         Color.cyan("Dari"),
-        Color.cyan(client.getName(m.from)),
-        Color.blueBright(m.from),
+        Color.cyan(client.getName(m.chat)),
+        Color.blueBright(m.chat),
       );
       console.log(
         Color.yellowBright("Chat"),
@@ -58,6 +58,14 @@ const handleMessagesUpsert = async (client, store, m) => {
         Color.greenBright(m.body || m.type),
       );
     }
+
+    const checkConditions = (condition, message) => {
+      if (condition) {
+        m.reply(message);
+        return true;
+      }
+      return false;
+    };
 
     // eval
     if (
@@ -77,30 +85,87 @@ const handleMessagesUpsert = async (client, store, m) => {
 
     // Handle command if message starts with a command prefix
     if (m.prefix) {
-      const { args, text } = m;
+      const { args, text, prefix } = m;
       const isCommand = m.prefix && m.body.startsWith(m.prefix);
-      const commandName = isCommand ? m.command.toLowerCase() : false;
+      const command = isCommand ? m.command.toLowerCase() : false;
 
-      if (commandName && commands.has(commandName)) {
-        const command = commands.get(commandName);
-        const isAccept = Array.isArray(command.cmd)
-          ? command.cmd.includes(commandName)
-          : false;
+      for (let name in plugins) {
+        let plugin = plugins[name];
 
-        if (isAccept) {
-          try {
-            await command.execute(m, {
-              client,
-              args,
-              text,
-              quoted,
-              commands,
-              store,
-            });
-          } catch (error) {
-            console.error(`Error executing command ${commandName}:`, error);
-            await m.reply(util.format(error));
+        if (!plugin) continue;
+        if (plugin.disabled) continue;
+
+        try {
+          if (typeof plugin.all === "function") {
+            await plugin.all.call(ctx, { bot });
           }
+
+          if (typeof plugin.before === "function") {
+            if (await plugin.before.call(ctx, { bot })) continue;
+          }
+
+          if (isCommand) {
+            const isAccept = Array.isArray(plugin.cmd)
+              ? plugin.cmd.includes(m.command)
+              : typeof plugin.cmd === "string" && plugin.cmd === m.command;
+
+            if (!isAccept) continue;
+            m.plugin = name;
+            m.isCommand = true;
+
+            if (checkConditions(plugin.owner && !m.isOwner, "owner")) continue;
+            if (checkConditions(plugin.premium && !isPrems, "premium"))
+              continue;
+            if (
+              checkConditions(
+                plugin.nsfw && m.isGroup && !db.chats[m.chat].nsfw,
+                "NSFW Tidak aktif.",
+              )
+            )
+              continue;
+            if (
+              checkConditions(
+                plugin.game && m.isGroup && !db.chats[m.chat].game,
+                "Game Tidak aktif di chat ini.",
+              )
+            )
+              continue;
+            if (checkConditions(plugin.group && !m.isGroup, "group")) continue;
+            if (checkConditions(plugin.botAdmin && !m.isBotAdmin, "botAdmin"))
+              continue;
+            if (checkConditions(plugin.admin && !m.isAdmin, "admin")) continue;
+            if (checkConditions(plugin.private && m.isGroup, "private"))
+              continue;
+            if (checkConditions(plugin.quoted && !m.isQuoted, "quoted"))
+              continue;
+
+            try {
+              await plugin.execute(m, {
+                client,
+                command,
+                prefix,
+                args,
+                text,
+                quoted,
+                plugins,
+                store,
+                API
+              });
+            } catch (e) {
+              console.error(e);
+              await m.reply(util.format(e));
+            } finally {
+              if (typeof plugin.after === "function") {
+                try {
+                  await plugin.after.call(ctx, { bot });
+                } catch (e) {
+                  console.error(e);
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.error(e);
         }
       }
     }

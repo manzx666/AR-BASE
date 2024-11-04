@@ -3,15 +3,15 @@
  * Contact -
  * Follow https://github.com/MhankBarBar
  */
-import fs from "fs";
-import Crypto from "crypto";
-import ff from "fluent-ffmpeg";
-import webp from "node-webpmux";
-import path from "path";
+const fs = require("fs");
+const Crypto = require("crypto");
+const ff = require("fluent-ffmpeg");
+const webp = require("node-webpmux");
+const path = require("path");
 
-const temp = process.platform === "win32" ? process.env.TEMP : "/tmp";
+const temp = process.platform === "win32" ? process.env.TEMP : "/temp";
 
-export async function imageToWebp(media) {
+async function imageToWebp(media) {
   const tmpFileIn = path.join(
     temp,
     `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.${media?.ext || "png"}`,
@@ -51,7 +51,7 @@ export async function imageToWebp(media) {
   }
 }
 
-export async function videoToWebp(media) {
+async function videoToWebp(media) {
   const tmpFileIn = path.join(
     temp,
     `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.${media?.ext || "mp4"}`,
@@ -103,7 +103,7 @@ export async function videoToWebp(media) {
   }
 }
 
-export async function writeExif(media, metadata) {
+async function writeExif(media, metadata) {
   let wMedia = /webp/.test(media.mimetype)
     ? media.data
     : /image/.test(media.mimetype)
@@ -140,3 +140,5 @@ export async function writeExif(media, metadata) {
     return await img.save(null);
   }
 }
+
+module.exports = { imageToWebp, videoToWebp, writeExif };

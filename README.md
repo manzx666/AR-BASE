@@ -1,12 +1,10 @@
 ---
-
 <h1 align="center">AR BASE WHATSAPP BOT</h1>
 
 <p align="center">
 <img src="" alt="AR-BASE Thumbnail">
 </p>
-
---- 
+---
 
 # AR-BASE
 
@@ -28,8 +26,7 @@
 - [Author](#author)
 - [License](#license)
 
-
-## Configurasi 
+## Configurasi
 
 Untuk mengonfigurasi bot, Anda perlu membuat file `.env` di direktori utama proyek. File ini berisi semua variabel lingkungan yang diperlukan untuk menjalankan bot dengan benar. Anda dapat menggunakan file `.env.example` sebagai panduan.
 
@@ -37,14 +34,13 @@ Untuk mengonfigurasi bot, Anda perlu membuat file `.env` di direktori utama proy
 
 1. **Salin file `.env.example`:**
    Di dalam direktori utama proyek, temukan file bernama `.env.example`. Salin file ini dan beri nama `.env`.
-   
+
 ```bash
 cp .env.example .env
 ```
 
 2. **Isi variabel lingkungan:**
    Buka file `.env` yang baru saja Anda buat dan isi nilai-nilai yang ada di file
-   
 
 ## Installation
 
