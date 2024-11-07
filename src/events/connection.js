@@ -1,4 +1,4 @@
-module.exports = (client, WAStart) => {
+export default (client, WAStart) => {
   client.ev.on("connection.update", async (update) => {
     const { connection } = update;
     if (connection === "open") {

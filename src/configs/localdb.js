@@ -1,10 +1,8 @@
 function loadDatabase(m) {
   const isNumber = (x) => typeof x === "number" && !isNaN(x);
   const isBoolean = (x) => typeof x === "boolean" && Boolean(x);
-
   let user = global.db.users[m.sender];
   if (typeof user !== "object") global.db.users[m.sender] = {};
-
   if (user) {
     if (!isBoolean(user.premium)) user.premium = m.isOwner ? true : false;
     if (!isBoolean(user.VIP)) user.VIP = m.isOwner ? true : false;
@@ -20,11 +18,9 @@ function loadDatabase(m) {
       banned: false,
     };
   }
-
   if (m.isGroup) {
     let group = global.db.groups[m.from];
     if (typeof group !== "object") global.db.groups[m.from] = {};
-
     if (group) {
       if (!isBoolean(group.mute)) group.mute = false;
       if (!isNumber(group.lastChat)) group.lastChat = new Date() * 1;
@@ -40,5 +36,7 @@ function loadDatabase(m) {
     }
   }
 }
-
-module.exports = { loadDatabase };
+export { loadDatabase };
+export default {
+  loadDatabase,
+};

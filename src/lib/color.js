@@ -20,7 +20,6 @@ const styles = {
     magenta: [35, 39],
     cyan: [36, 39],
     white: [37, 39],
-
     // Bright color
     blackBright: [90, 39],
     gray: [90, 39], // Alias of `blackBright`
@@ -42,7 +41,6 @@ const styles = {
     magenta: [45, 49],
     cyan: [46, 49],
     white: [47, 49],
-
     // Bright color
     blackBright: [100, 49],
     gray: [100, 49], // Alias of `bgBlackBright`
@@ -56,12 +54,10 @@ const styles = {
     whiteBright: [107, 49],
   },
 };
-
 function applyStyle(text, style) {
   const [start, end] = style;
   return `\x1b[${start}m${text}\x1b[${end}m`;
 }
-
 const Color = {
   // background
   bgBlack: (text) => applyStyle(text, styles.bgColor.black),
@@ -82,7 +78,6 @@ const Color = {
   bgMagentaBright: (text) => applyStyle(text, styles.bgColor.magentaBright),
   bgCyanBright: (text) => applyStyle(text, styles.bgColor.cyanBright),
   bgWhiteBright: (text) => applyStyle(text, styles.bgColor.whiteBright),
-
   // text
   black: (text) => applyStyle(text, styles.color.black),
   red: (text) => applyStyle(text, styles.color.red),
@@ -102,7 +97,6 @@ const Color = {
   magentaBright: (text) => applyStyle(text, styles.color.magentaBright),
   cyanBright: (text) => applyStyle(text, styles.color.cyanBright),
   whiteBright: (text) => applyStyle(text, styles.color.whiteBright),
-
   // hex
   hex: (hex) => (text) =>
     `\x1B[38;2;${hex
@@ -115,5 +109,4 @@ const Color = {
       .map((x) => parseInt(x, 16))
       .join(";")}m${text}\x1B[39m`,
 };
-
-module.exports = Color;
+export default Color;

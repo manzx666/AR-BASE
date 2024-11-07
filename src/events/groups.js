@@ -1,6 +1,6 @@
-const { jidNormalizedUser } = require("@whiskeysockets/baileys");
-
-module.exports = (client, store) => {
+import baileys from "@whiskeysockets/baileys";
+const { jidNormalizedUser } = baileys;
+export default (client, store) => {
   // Group update handler
   client.ev.on("groups.update", (updates) => {
     for (const update of updates) {
@@ -13,7 +13,6 @@ module.exports = (client, store) => {
       }
     }
   });
-
   // Participants update handler
   client.ev.on("group-participants.update", ({ id, participants, action }) => {
     const metadata = store.groupMetadata[id];

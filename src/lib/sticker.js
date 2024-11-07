@@ -1,16 +1,9 @@
-/**
- * Create By Mhankbarbar
- * Contact -
- * Follow https://github.com/MhankBarBar
- */
-const fs = require("fs");
-const Crypto = require("crypto");
-const ff = require("fluent-ffmpeg");
-const webp = require("node-webpmux");
-const path = require("path");
-
+import fs from "fs";
+import Crypto from "crypto";
+import * as ff from "fluent-ffmpeg";
+import webp from "node-webpmux";
+import path from "path";
 const temp = process.platform === "win32" ? process.env.TEMP : "/temp";
-
 async function imageToWebp(media) {
   const tmpFileIn = path.join(
     temp,
@@ -20,9 +13,7 @@ async function imageToWebp(media) {
     temp,
     `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`,
   );
-
   fs.writeFileSync(tmpFileIn, media.data);
-
   try {
     await new Promise((resolve, reject) => {
       ff(tmpFileIn)
@@ -38,11 +29,9 @@ async function imageToWebp(media) {
         .toFormat("webp")
         .saveToFile(tmpFileOut);
     });
-
     fs.promises.unlink(tmpFileIn);
     const buff = fs.readFileSync(tmpFileOut);
     fs.promises.unlink(tmpFileOut);
-
     return buff;
   } catch (e) {
     fs.existsSync(tmpFileIn) ? fs.promises.unlink(tmpFileIn) : "";
@@ -50,7 +39,6 @@ async function imageToWebp(media) {
     throw e;
   }
 }
-
 async function videoToWebp(media) {
   const tmpFileIn = path.join(
     temp,
@@ -60,9 +48,7 @@ async function videoToWebp(media) {
     temp,
     `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`,
   );
-
   fs.writeFileSync(tmpFileIn, media.data);
-
   try {
     await new Promise((resolve, reject) => {
       ff(tmpFileIn)
@@ -90,11 +76,9 @@ async function videoToWebp(media) {
         .toFormat("webp")
         .saveToFile(tmpFileOut);
     });
-
     fs.promises.unlink(tmpFileIn);
     const buff = fs.readFileSync(tmpFileOut);
     fs.promises.unlink(tmpFileOut);
-
     return buff;
   } catch (e) {
     fs.existsSync(tmpFileIn) ? fs.promises.unlink(tmpFileIn) : "";
@@ -102,7 +86,6 @@ async function videoToWebp(media) {
     throw e;
   }
 }
-
 async function writeExif(media, metadata) {
   let wMedia = /webp/.test(media.mimetype)
     ? media.data
@@ -111,7 +94,6 @@ async function writeExif(media, metadata) {
       : /video/.test(media.mimetype)
         ? await videoToWebp(media)
         : "";
-
   if (metadata && Object?.keys(metadata).length !== 0) {
     const img = new webp.Image();
     const json = {
@@ -136,9 +118,14 @@ async function writeExif(media, metadata) {
     exif.writeUIntLE(jsonBuff.length, 14, 4);
     await img.load(wMedia);
     img.exif = exif;
-
     return await img.save(null);
   }
 }
-
-module.exports = { imageToWebp, videoToWebp, writeExif };
+export { imageToWebp };
+export { videoToWebp };
+export { writeExif };
+export default {
+  imageToWebp,
+  videoToWebp,
+  writeExif,
+};

@@ -1,11 +1,9 @@
-const mongoose = require("mongoose");
-const fs = require("fs");
-const path = require("path");
-const config = require("./config");
-
+import mongoose from "mongoose";
+import fs from "fs";
+import path from "path";
+import config from "./config.js";
 mongoose.set("strictQuery", false);
 let Database;
-
 if (/mongo/.test(config.database)) {
   Database = class MongoDB {
     constructor(url) {
@@ -20,7 +18,6 @@ if (/mongo/.test(config.database)) {
       };
       this.data = {};
     }
-
     async read() {
       await mongoose.connect(this.connection, this.options);
       try {
@@ -35,7 +32,6 @@ if (/mongo/.test(config.database)) {
       } catch {
         this.model.database = mongoose.model("data");
       }
-
       this.data = await this.model.database.findOne({});
       if (!this.data) {
         await new this.model.database({
@@ -43,10 +39,8 @@ if (/mongo/.test(config.database)) {
         }).save();
         this.data = await this.model.database.findOne({});
       }
-
       return this?.data?.data || this?.data;
     }
-
     async write(data) {
       const obj = data || global.db;
       if (!this.data || !this.data.data) {
@@ -54,7 +48,6 @@ if (/mongo/.test(config.database)) {
           data: obj,
         }).save();
       }
-
       const document = await this.model.database.findById(this.data._id);
       document.data = obj;
       await document.save();
@@ -66,7 +59,6 @@ if (/mongo/.test(config.database)) {
       this.data = {};
       this.file = path.join(process.cwd(), "temp", config.database);
     }
-
     read() {
       let data;
       if (fs.existsSync(this.file)) {
@@ -77,7 +69,6 @@ if (/mongo/.test(config.database)) {
       }
       return data;
     }
-
     write(data) {
       this.data = data || global.db;
       const dirname = path.dirname(this.file);
@@ -87,5 +78,4 @@ if (/mongo/.test(config.database)) {
     }
   };
 }
-
-module.exports = Database;
+export default Database;

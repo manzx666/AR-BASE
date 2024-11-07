@@ -1,3 +1,6 @@
+import baileys from "@whiskeysockets/baileys";
+import { Client } from "../lib/serialize.js";
+import pino from "pino";
 const {
   default: WAConnect,
   makeInMemoryStore,
@@ -5,33 +8,31 @@ const {
   fetchLatestBaileysVersion,
   fetchLatestWaWebVersion,
   useMultiFileAuthState,
-} = require("@whiskeysockets/baileys");
-const { Client } = require("../lib/serialize");
-const pino = require("pino");
+} = baileys;
 
 const createClient = async (options = {}) => {
   const logger = pino({
     timestamp: () => `,"time":"${new Date().toJSON()}"`,
   }).child({ class: "client" });
   logger.level = "fatal";
+  
   const store = makeInMemoryStore({ logger });
-
   const { state, saveCreds } = await useMultiFileAuthState(options.session);
   const client = WAConnect({
     logger: pino({ level: "silent" }),
     printQRInTerminal: true,
     browser: Browsers.ubuntu("Chrome"),
     auth: state,
-    ...options,
+    ...options.connection, 
   });
   store.bind(client.ev);
   await Client({ client, store });
-
+  
   return { client, saveCreds, store };
 };
 
 async function getWAVersion() {
-  try {
+  try { 
     const { version, isLatest } = await fetchLatestWaWebVersion();
     return { version, isLatest };
   } catch (err) {
@@ -39,5 +40,10 @@ async function getWAVersion() {
     return { version, isLatest };
   }
 }
-
-module.exports = { createClient, getWAVersion };
+  
+export { createClient };
+export { getWAVersion };
+export default {
+  createClient,
+  getWAVersion,
+};

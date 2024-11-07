@@ -1,17 +1,16 @@
-const config = require("../configs/config.js");
-const Function = require("./function.js");
-const { writeExif } = require("./sticker.js");
-
-const fs = require("fs");
-const path = require("path");
-const util = require("util");
-const chalk = require("chalk");
-const Crypto = require("crypto");
-const baileys = require("@whiskeysockets/baileys");
-const { parsePhoneNumber } = require("libphonenumber-js");
-const { fileTypeFromBuffer } = require("file-type");
-const { fileURLToPath } = require("url");
-
+import config from "../configs/config.js";
+import Function from "./function.js";
+import { writeExif } from "./sticker.js";
+import fs from "fs";
+import path from "path";
+import util from "util";
+import chalk from "chalk";
+import Crypto from "crypto";
+import baileys from "@whiskeysockets/baileys";
+import { parsePhoneNumber } from "libphonenumber-js";
+import fileType from "file-type";
+import { fileURLToPath } from "url";
+const { fileTypeFromBuffer } = fileType;
 const {
   generateWAMessage,
   generateWAMessageFromContent,
@@ -20,18 +19,14 @@ const {
   jidNormalizedUser,
   WA_DEFAULT_EPHEMERAL,
 } = baileys;
-
 function toSHA256(str) {
   return Crypto.createHash("sha256").update(str).digest("hex");
 }
-
 function Client({ client: conn, store }) {
   delete store.groupMetadata;
-
   for (let v in store) {
     conn[v] = store[v];
   }
-
   const client = Object.defineProperties(conn, {
     appenTextMessage: {
       async value(m, text, chatUpdate) {
@@ -40,23 +35,18 @@ function Client({ client: conn, store }) {
           { text: text, mentions: m.mentionedJid },
           { userJid: conn.user.id, quoted: m.quoted && m.quoted.fakeObj },
         );
-
         messages.key.fromMe = baileys.areJidsSameUser(m.sender, conn.user.id);
         messages.key.id = m.key.id;
         messages.pushName = m.pushName;
-
         if (m.isGroup) messages.participant = m.sender;
-
         let msg = {
           ...chatUpdate,
           messages: [baileys.proto.WebMessageInfo.fromObject(messages)],
           type: "append",
         };
-
         conn.ev.emit("messages.upsert", msg);
       },
     },
-
     logger: {
       get() {
         return {
@@ -94,7 +84,6 @@ function Client({ client: conn, store }) {
       },
       enumerable: true,
     },
-
     smlcap: {
       value(text, except = []) {
         if (!text) return text;
@@ -155,7 +144,6 @@ function Client({ client: conn, store }) {
       },
       enumerable: true,
     },
-
     getContentType: {
       value(content) {
         if (content) {
@@ -173,7 +161,6 @@ function Client({ client: conn, store }) {
       },
       enumerable: true,
     },
-
     decodeJid: {
       value(jid) {
         if (/:\d+@/gi.test(jid)) {
@@ -182,18 +169,15 @@ function Client({ client: conn, store }) {
         } else return jid;
       },
     },
-
     generateMessageID: {
       value(id = "3EB0", length = 18) {
         return id + Crypto.randomBytes(length).toString("hex").toUpperCase();
       },
     },
-
     getName: {
       value(jid) {
         let id = conn.decodeJid(jid),
           v;
-
         if (id?.endsWith("@g.us")) {
           return new Promise(async (resolve) => {
             v = (await store.fetchGroupMetadata(jid, conn)) || {};
@@ -207,7 +191,6 @@ function Client({ client: conn, store }) {
                 ? conn.user
                 : conn.contacts?.[id] || {};
         }
-
         return (
           v?.name ||
           v?.subject ||
@@ -220,22 +203,15 @@ function Client({ client: conn, store }) {
         );
       },
     },
-
     sendContact: {
       async value(jid, number, quoted, options = {}) {
         let list = [];
-
         for (let v of number) {
           list.push({
             displayName: await conn.getName(v),
-            vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${await conn.getName(
-              v + "@s.whatsapp.net",
-            )}\nFN:${await conn.getName(
-              v + "@s.whatsapp.net",
-            )}\nitem1.TEL;waid=${v}:${v}\nitem1.X-ABLabel:Ponsel\nitem2.EMAIL;type=INTERNET:contacts@arifzyn.tech\nitem2.X-ABLabel:Email\nitem3.URL:https://api.arifzyn.tech\nitem3.X-ABLabel:Instagram\nitem4.ADR:;;Indonesia;;;;\nitem4.X-ABLabel:Region\nEND:VCARD`,
+            vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${await conn.getName(v + "@s.whatsapp.net")}\nFN:${await conn.getName(v + "@s.whatsapp.net")}\nitem1.TEL;waid=${v}:${v}\nitem1.X-ABLabel:Ponsel\nitem2.EMAIL;type=INTERNET:contacts@arifzyn.tech\nitem2.X-ABLabel:Email\nitem3.URL:https://api.arifzyn.tech\nitem3.X-ABLabel:Instagram\nitem4.ADR:;;Indonesia;;;;\nitem4.X-ABLabel:Region\nEND:VCARD`,
           });
         }
-
         return conn.sendMessage(
           jid,
           {
@@ -253,7 +229,6 @@ function Client({ client: conn, store }) {
       },
       enumerable: true,
     },
-
     parseMention: {
       value(text) {
         return (
@@ -263,7 +238,6 @@ function Client({ client: conn, store }) {
         );
       },
     },
-
     downloadMediaMessage: {
       async value(message, filename) {
         let mime = {
@@ -274,7 +248,6 @@ function Client({ client: conn, store }) {
           audioMessage: "audio",
           ptvMessage: "video",
         }[message.type];
-
         if ("thumbnailDirectPath" in message.msg && !("url" in message.msg)) {
           message = {
             directPath: message.msg.thumbnailDirectPath,
@@ -284,14 +257,12 @@ function Client({ client: conn, store }) {
         } else {
           message = message.msg;
         }
-
         return await baileys.toBuffer(
           await baileys.downloadContentFromMessage(message, mime),
         );
       },
       enumerable: true,
     },
-
     sendFile: {
       /**
        * Send Media/File with Automatic Type Specifier
@@ -318,7 +289,6 @@ function Client({ client: conn, store }) {
           conn.chats[jid]?.metadata?.ephemeralDuration ||
           conn.chats[jid]?.ephemeralDuration ||
           false;
-
         let caption = isSmlcap
           ? conn.smlcap(text, smlcap.except ? smlcap.except : false)
           : text;
@@ -357,13 +327,11 @@ function Client({ client: conn, store }) {
             (mimetype = options.mimetype || "audio/ogg; codecs=opus");
         else mtype = "document";
         if (options.asDocument) mtype = "document";
-
         delete options.asSticker;
         delete options.asLocation;
         delete options.asVideo;
         delete options.asDocument;
         delete options.asImage;
-
         let message = {
           ...options,
           caption,
@@ -398,7 +366,6 @@ function Client({ client: conn, store }) {
       },
       enumerable: true,
     },
-
     getFile: {
       /**
        * getBuffer hehe
@@ -463,14 +430,12 @@ function Client({ client: conn, store }) {
       },
       enumerable: true,
     },
-
     sendMedia: {
       async value(jid, url, quoted = "", options = {}) {
         let { mime, data: buffer, ext, size } = await Function.getFile(url);
         mime = options?.mimetype ? options.mimetype : mime;
         let data = { text: "" },
           mimetype = /audio/i.test(mime) ? "audio/mpeg" : mime;
-
         if (size > 45000000)
           data = {
             document: buffer,
@@ -524,7 +489,6 @@ function Client({ client: conn, store }) {
             mimetype: mime,
             ...options,
           };
-
         return await conn.sendMessage(jid, data, {
           quoted,
           ...options,
@@ -532,12 +496,10 @@ function Client({ client: conn, store }) {
       },
       enumerable: true,
     },
-
     cMod: {
       value(jid, copy, text = "", sender = conn.user.id, options = {}) {
         let mtype = conn.getContentType(copy.message);
         let content = copy.message[mtype];
-
         if (typeof content === "string") copy.message[mtype] = text || content;
         else if (content.caption) content.caption = text || content.text;
         else if (content.text) content.text = text || content.text;
@@ -549,7 +511,6 @@ function Client({ client: conn, store }) {
               options.mentions || content.contextInfo?.mentionedJid || [],
           };
         }
-
         if (copy.key.participant)
           sender = copy.key.participant = sender || copy.key.participant;
         if (copy.key.remoteJid.includes("@s.whatsapp.net"))
@@ -561,13 +522,11 @@ function Client({ client: conn, store }) {
         return baileys.proto.WebMessageInfo.fromObject(copy);
       },
     },
-
     sendPoll: {
       async value(chatId, name, values, options = {}) {
         let selectableCount = options?.selectableCount
           ? options.selectableCount
           : 1;
-
         return await conn.sendMessage(
           chatId,
           {
@@ -583,11 +542,9 @@ function Client({ client: conn, store }) {
       },
       enumerable: true,
     },
-
     setProfilePicture: {
       async value(jid, media, type = "full") {
         let { data } = await Function.getFile(media);
-
         if (/full/i.test(type)) {
           data = await Function.resizeImage(media, 720);
           await conn.query({
@@ -630,7 +587,6 @@ function Client({ client: conn, store }) {
       },
       enumerable: true,
     },
-
     sendGroupV4Invite: {
       async value(
         jid,
@@ -650,7 +606,6 @@ function Client({ client: conn, store }) {
             upload: conn.waUploadToServer,
           },
         );
-
         const message = baileys.proto.Message.fromObject({
           groupJid,
           inviteCode,
@@ -661,29 +616,23 @@ function Client({ client: conn, store }) {
           jpegThumbnail: media.imageMessage?.jpegThumbnail || jpegThumbnail,
           caption,
         });
-
         const m = baileys.generateWAMessageFromContent(jid, message, {
           userJid: conn.user?.id,
         });
-
         await conn.relayMessage(jid, m.message, {
           messageId: m.key.id,
         });
-
         return m;
       },
       enumerable: true,
     },
-
     sendListM: {
       async value(jid, text, footer, url, list, quoted, options = {}) {
         let header = {
           hasMediaAttachment: false,
         };
-
         if (url) {
           let { mime, data: buffer, ext, size } = await Function.getFile(url);
-
           if (/image|video/i.test(mime)) {
             let media;
             if (/image/i.test(mime)) {
@@ -697,14 +646,12 @@ function Client({ client: conn, store }) {
                 { upload: conn.waUploadToServer },
               );
             }
-
             header = {
               hasMediaAttachment: true,
               ...media,
             };
           }
         }
-
         let msg = generateWAMessageFromContent(
           jid,
           {
@@ -743,7 +690,6 @@ function Client({ client: conn, store }) {
           },
           { quoted, userJid: quoted.key.remoteJid },
         );
-
         conn.relayMessage(jid, msg.message, {
           messageId: msg.key.id,
         });
@@ -764,10 +710,8 @@ function Client({ client: conn, store }) {
         let header = {
           hasMediaAttachment: false,
         };
-
         if (media) {
           let { mime, data: buffer, ext, size } = await Function.getFile(media);
-
           if (/image|video/i.test(mime)) {
             let media;
             if (/image/i.test(mime)) {
@@ -781,14 +725,12 @@ function Client({ client: conn, store }) {
                 { upload: conn.waUploadToServer },
               );
             }
-
             header = {
               hasMediaAttachment: true,
               ...media,
             };
           }
         }
-
         let buttonsArray = buttons.map(([buttonText, quickText]) => ({
           name: "quick_reply",
           buttonParamsJson: JSON.stringify({
@@ -833,7 +775,6 @@ function Client({ client: conn, store }) {
       enumerable: true,
       writable: true,
     },
-
     reply: {
       /**
        * Reply to a message
@@ -848,7 +789,6 @@ function Client({ client: conn, store }) {
           conn.chats[jid]?.metadata?.ephemeralDuration ||
           conn.chats[jid]?.ephemeralDuration ||
           false;
-
         if (global.db.data.settings.adReply) {
           let thumb = ["thumb-1", "thumb-2", "thumb-3", "thumb-4", "thumb-5"];
           return Buffer.isBuffer(text)
@@ -899,7 +839,6 @@ function Client({ client: conn, store }) {
           conn.chats[jid]?.metadata?.ephemeralDuration ||
           conn.chats[jid]?.ephemeralDuration ||
           false;
-
         let { data } = await conn.getFile(buffer, true);
         return conn.sendMessage(
           jid,
@@ -1081,7 +1020,6 @@ ${text}
         return conn.sendMessage(jid, { react: { text: text, key: key } });
       },
     },
-
     msToDate: {
       value(ms) {
         let days = Math.floor(ms / (24 * 60 * 60 * 1000));
@@ -1095,7 +1033,6 @@ ${text}
       },
       enumerable: true,
     },
-
     msToTime: {
       value(ms) {
         let h = isNaN(ms) ? "--" : Math.floor(ms / 3600000);
@@ -1107,7 +1044,6 @@ ${text}
       },
       enumerable: true,
     },
-
     msToHour: {
       value(ms) {
         let h = isNaN(ms) ? "--" : Math.floor(ms / 3600000);
@@ -1115,7 +1051,6 @@ ${text}
       },
       enumerable: true,
     },
-
     msToMinute: {
       value(ms) {
         let m = isNaN(ms) ? "--" : Math.floor(ms / 60000) % 60;
@@ -1125,7 +1060,6 @@ ${text}
       },
       enumerable: true,
     },
-
     msToSecond: {
       value(ms) {
         let s = isNaN(ms) ? "--" : Math.floor(ms / 1000) % 60;
@@ -1133,7 +1067,6 @@ ${text}
       },
       enumerable: true,
     },
-
     clockString: {
       value(ms) {
         let h = isNaN(ms) ? "--" : Math.floor(ms / 3600000);
@@ -1145,7 +1078,6 @@ ${text}
       },
       enumerable: true,
     },
-
     sendMsg: {
       async value(jid, message = {}, options = {}) {
         return await conn.sendMessage(jid, message, {
@@ -1157,7 +1089,6 @@ ${text}
       enumerable: false,
       writable: true,
     },
-
     sendFThumb: {
       async value(
         jid,
@@ -1229,7 +1160,6 @@ ${text}
       enumerable: false,
       writable: true,
     },
-
     sendTemplate: {
       async value(jid, templateMessage, quoted = null) {
         const buttons = templateMessage.templateButtons.map((button) => {
@@ -1260,7 +1190,6 @@ ${text}
           subtitle: "",
           hasMediaAttachment: false,
         });
-
         if (templateMessage.image) {
           header = {
             ...header,
@@ -1318,20 +1247,15 @@ ${text}
       writable: true,
     },
   });
-
   if (conn.user?.id) conn.user.jid = conn.decodeJid(conn.user?.id);
   return conn;
 }
-
 async function Serialize(conn, msg) {
   const m = {};
   const botNumber = conn.decodeJid(conn.user?.id);
-
   if (!msg.message) return;
   if (msg.key && msg.key.remoteJid == "status@broadcast") return;
-
   m.message = baileys.extractMessageContent(msg.message);
-
   if (msg.key) {
     m.key = msg.key;
     m.chat = m.key.remoteJid.startsWith("status")
@@ -1349,14 +1273,12 @@ async function Serialize(conn, msg) {
       m.fromMe ? conn.user.id : m.isGroup ? m.participant : m.chat,
     );
   }
-
   m.pushName = msg.pushName;
   m.isOwner =
     m.sender &&
     [...config.owner, botNumber.split("@")[0]].includes(
       m.sender.replace(/\D+/g, ""),
     );
-
   if (m.isGroup) {
     m.metadata = await conn.groupMetadata(m.chat);
     m.admins = m.metadata.participants.reduce(
@@ -1369,7 +1291,6 @@ async function Serialize(conn, msg) {
     m.isAdmin = !!m.admins.find((member) => member.id === m.sender);
     m.isBotAdmin = !!m.admins.find((member) => member.id === botNumber);
   }
-
   if (m.message) {
     m.type = conn.getContentType(m.message) || Object.keys(m.message)[0];
     m.msg =
@@ -1439,22 +1360,18 @@ async function Serialize(conn, msg) {
           ? msg.messageTimestamp.low
           : msg.messageTimestamp.high) || m.msg.timestampMs * 1000;
     m.isMedia = !!m.msg?.mimetype || !!m.msg?.thumbnailDirectPath;
-
     if (m.isMedia) {
       m.mime = m.msg?.mimetype;
       m.size = m.msg?.fileLength;
       m.height = m.msg?.height || "";
       m.width = m.msg?.width || "";
-
       if (/webp/i.test(m.mime)) {
         m.isAnimated = m.msg?.isAnimated;
       }
     }
-
     m.reply = async (text, options = {}) => {
       let chatId = options?.from ? options.from : m.chat;
       let quoted = options?.quoted ? options.quoted : m;
-
       if (
         Buffer.isBuffer(text) ||
         /^data:.?\/.*?;base64,/i.test(text) ||
@@ -1462,7 +1379,6 @@ async function Serialize(conn, msg) {
         fs.existsSync(text)
       ) {
         let data = await Function.getFile(text);
-
         if (
           !options.mimetype &&
           (/utf-8|json/i.test(data.mime) || data.ext == ".bin" || !data.ext)
@@ -1495,23 +1411,19 @@ async function Serialize(conn, msg) {
         );
       }
     };
-
     m.download = (filepath) => {
       if (filepath) return conn.downloadMediaMessage(m, filepath);
       else return conn.downloadMediaMessage(m);
     };
   }
-
   // quoted line
   m.isQuoted = false;
-
   if (m.msg?.contextInfo?.quotedMessage) {
     m.isQuoted = true;
     m.quoted = {};
     m.quoted.message = baileys.extractMessageContent(
       m.msg?.contextInfo?.quotedMessage,
     );
-
     if (m.quoted.message) {
       m.quoted.type =
         conn.getContentType(m.quoted.message) ||
@@ -1530,7 +1442,6 @@ async function Serialize(conn, msg) {
         ),
         id: m.msg?.contextInfo?.stanzaId,
       };
-
       m.quoted.from = m.quoted.key.remoteJid;
       m.quoted.fromMe = m.quoted.key.fromMe;
       m.quoted.id = m.msg?.contextInfo?.stanzaId;
@@ -1546,7 +1457,6 @@ async function Serialize(conn, msg) {
         [...config.owner, botNumber.split("@")[0]].includes(
           m.quoted.sender.replace(/\D+/g, ""),
         );
-
       if (m.quoted.isGroup) {
         m.quoted.metadata = await conn.groupMetadata(m.quoted.from);
         m.quoted.admins = m.quoted.metadata.participants.reduce(
@@ -1563,7 +1473,6 @@ async function Serialize(conn, msg) {
           (member) => member.id === botNumber,
         );
       }
-
       m.quoted.mentions = m.quoted.msg?.contextInfo?.mentionedJid || [];
       m.quoted.body =
         m.quoted.msg?.text ||
@@ -1603,7 +1512,6 @@ async function Serialize(conn, msg) {
       m.quoted.text = m.quoted.args.join(" ");
       m.quoted.isMedia =
         !!m.quoted.msg?.mimetype || !!m.quoted.msg?.thumbnailDirectPath;
-
       if (m.quoted.isMedia) {
         m.quoted.mime = m.quoted.msg?.mimetype;
         m.quoted.size = m.quoted.msg?.fileLength;
@@ -1613,18 +1521,15 @@ async function Serialize(conn, msg) {
           m.quoted.isAnimated = m?.quoted?.msg?.isAnimated || false;
         }
       }
-
       m.quoted.reply = (text, options = {}) => {
         return m.reply(text, { quoted: m.quoted, ...options });
       };
-
       m.quoted.download = (filepath) => {
         if (filepath) return conn.downloadMediaMessage(m.quoted, filepath);
         else return conn.downloadMediaMessage(m.quoted);
       };
     }
   }
-
   m.react = (emoji) =>
     conn.sendMessage(m.from, {
       react: {
@@ -1632,7 +1537,6 @@ async function Serialize(conn, msg) {
         key: m.key,
       },
     });
-
   m.replyUpdate = (text, cb) => {
     return new Promise(async (resolve) => {
       const response = await conn.sendMessage(
@@ -1660,10 +1564,8 @@ async function Serialize(conn, msg) {
       resolve();
     });
   };
-
   return m;
 }
-
 function protoType() {
   Buffer.prototype.toArrayBuffer = function toArrayBufferV2() {
     const ab = new ArrayBuffer(this.length);
@@ -1722,16 +1624,20 @@ function protoType() {
     Array.prototype.getRandom =
       getRandom;
 }
-
 function isNumber() {
   const int = parseInt(this);
   return typeof int === "number" && !isNaN(int);
 }
-
 function getRandom() {
   if (Array.isArray(this) || this instanceof String)
     return this[Math.floor(Math.random() * this.length)];
   return Math.floor(Math.random() * this);
 }
-
-module.exports = { Client, protoType, Serialize };
+export { Client };
+export { protoType };
+export { Serialize };
+export default {
+  Client,
+  protoType,
+  Serialize,
+};

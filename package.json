@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Simple Bot WhatsApp Using Baileys",
   "main": "src/index.js",
+  "type": "module",
   "scripts": {
     "start": "node src/index.js --max-old-space-size=8192",
     "dev": "nodemon src/index.js",
@@ -15,7 +16,7 @@
   "author": "Arifzyn19",
   "license": "MIT",
   "dependencies": {
-    "@arifzyn/api": "^1.0.3",
+    "@arifzyn/api": "^1.0.5",
     "@hapi/boom": "latest",
     "@whiskeysockets/baileys": "latest",
     "cheerio": "^1.0.0",

@@ -1,24 +1,40 @@
-const config = require("../configs/config");
-const fs = require("fs");
-const { existsSync, watch } = fs;
-const { join, resolve } = require("path");
-const os = require("os");
-const syntaxerror = require("syntax-error");
+import config from "./config.js";
+import fs, { existsSync, watch } from 'fs';
+import { join, resolve } from 'path';
+import * as os from 'os';
+import syntaxerror from 'syntax-error';
+import { createRequire } from "module";
+import path from "path";
+import Helper from './helper.js';
 
-const rootDirectory = join(__dirname, "../../");
-const pluginFolder = join(__dirname, "../../" + config.commands);
-const pluginFilter = (filename) => /\.js$/.test(filename);
+const __dirname = Helper.__dirname(import.meta);
+const rootDirectory = Helper.__dirname(join(__dirname, '../'));
+const pluginFolder = Helper.__dirname(
+  join(__dirname, '../../' + config.commands)
+);
+const pluginFilter = (filename) => /\.(js|mjs|cjs)$/.test(filename);
+const require = createRequire(import.meta.url);
 
 async function importFile(module) {
-  const module_ = require(`${module}`);
-  const result = module_ && "default" in module_ ? module_.default : module_;
+  module = Helper.__filename(module);
+  
+  const ext = path.extname(module);
+  let result;
+
+  if (ext === ".cjs") {
+    const module_ = require(module);
+    result = module_ && module_.default ? module_.default : module_;
+  } else {
+    const module_ = await import(`${module}?id=${Date.now()}`);
+    result = module_ && module_.default ? module_.default : module_;
+  }
+
   return result;
 }
 
 let watcher = {};
 let plugins = {};
 let pluginFolders = [];
-
 /**
  * Load files from plugin folder as plugins
  */
@@ -30,7 +46,6 @@ async function loadPluginFiles(
   const folder = resolve(pluginFolder);
   if (folder in watcher) return;
   pluginFolders.push(folder);
-
   const paths = await fs.promises.readdir(pluginFolder);
   await Promise.all(
     paths.map(async (path) => {
@@ -44,7 +59,6 @@ async function loadPluginFiles(
             await loadPluginFiles(dirname, pluginFilter, opts);
           return;
         }
-
         const filename = resolved;
         const isValidFile = pluginFilter(filename);
         if (!isValidFile) return;
@@ -56,7 +70,6 @@ async function loadPluginFiles(
       }
     }),
   );
-
   const watching = watch(
     folder,
     reload.bind(null, {
@@ -67,10 +80,8 @@ async function loadPluginFiles(
   );
   watching.on("close", () => deletePluginFolder(folder, true));
   watcher[folder] = watching;
-
   return (plugins = sortedPlugins(plugins));
 }
-
 /**
  * Delete and stop watching the folder
  */
@@ -81,7 +92,6 @@ function deletePluginFolder(folder, isAlreadyClosed = false) {
   delete watcher[resolved];
   pluginFolders.splice(pluginFolders.indexOf(resolved), 1);
 }
-
 /**
  * Reload file to load latest changes
  */
@@ -120,7 +130,6 @@ async function reload(
       }
   }
 }
-
 /**
  * Format filename to a relative path
  */
@@ -131,7 +140,6 @@ function formatFilename(filename) {
   const formatted = filename.replace(regex, "");
   return formatted;
 }
-
 /**
  * Sort plugins by their keys
  */
@@ -140,8 +148,15 @@ function sortedPlugins(plugins) {
     Object.entries(plugins).sort(([a], [b]) => a.localeCompare(b)),
   );
 }
-
-module.exports = {
+export { pluginFolder };
+export { pluginFilter };
+export { plugins };
+export { watcher };
+export { pluginFolders };
+export { loadPluginFiles };
+export { deletePluginFolder };
+export { reload };
+export default {
   pluginFolder,
   pluginFilter,
   plugins,

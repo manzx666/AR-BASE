@@ -1,20 +1,20 @@
-const fs = require("fs");
-const path = require("path");
-const Jimp = require("jimp");
-const axios = require("axios");
-const chalk = require("chalk");
-const cheerio = require("cheerio");
-const mimes = require("mime-types");
-const FormData = require("form-data");
-const moment = require("moment-timezone");
-const baileys = require("@whiskeysockets/baileys");
-const { format } = require("util");
-const { platform } = require("os");
-const { exec } = require("child_process");
-const { fromBuffer } = require("file-type");
-const { fileURLToPath, pathToFileURL } = require("url");
-
-module.exports = new (class Function {
+import fs from "fs";
+import path from "path";
+import Jimp from "jimp";
+import * as axios from "axios";
+import chalk from "chalk";
+import * as cheerio from "cheerio";
+import * as mimes from "mime-types";
+import FormData from "form-data";
+import * as moment from "moment-timezone";
+import baileys from "@whiskeysockets/baileys";
+import { format } from "util";
+import { platform } from "os";
+import { exec } from "child_process";
+import fileType from "file-type";
+import { fileURLToPath, pathToFileURL } from "url";
+const { fromBuffer } = fileType;
+export default new (class Function {
   constructor() {
     this.axios = axios;
     this.cheerio = cheerio;
@@ -30,7 +30,6 @@ module.exports = new (class Function {
       freeimage: this.freeimage.bind(this),
     };
   }
-
   /* Text Style
    * @param {String} type
    * @param {String} text
@@ -47,7 +46,6 @@ module.exports = new (class Function {
         return "```" + text + "```";
     }
   };
-
   /* Example Format
    * @param {String} isPrefix
    * @param {String} command
@@ -56,14 +54,12 @@ module.exports = new (class Function {
   example = (isPrefix, command, args) => {
     return `• ${this.texted("bold", "Example")} : ${isPrefix + command} ${args}`;
   };
-
   /* Random Filename
    * @param {String} extension
    */
   filename = (extension) => {
     return `${Math.floor(Math.random() * 10000)}.${extension}`;
   };
-
   /* Create UUID */
   uuid = () => {
     var dt = new Date().getTime();
@@ -77,14 +73,12 @@ module.exports = new (class Function {
     );
     return uuid;
   };
-
   /* Random Element From Array
    * @param {Array} list
    */
   random = (list) => {
     return list[Math.floor(Math.random() * list.length)];
   };
-
   /* Random Number
    * @param {Integer} min
    * @param {Integer} max
@@ -94,7 +88,6 @@ module.exports = new (class Function {
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min;
   };
-
   /* Format Number \w Dot
    * @param {Integer} integer
    */
@@ -102,12 +95,10 @@ module.exports = new (class Function {
     let numb = parseInt(integer);
     return Number(numb).toLocaleString().replace(/,/g, ".");
   };
-
   formatNumber = (integer) => {
     let numb = parseInt(integer);
     return Number(numb).toLocaleString().replace(/,/g, ".");
   };
-
   /* H2K Format
    * @param {Integer} integer
    */
@@ -117,7 +108,6 @@ module.exports = new (class Function {
       notation: "compact",
     }).format(numb);
   };
-
   /* To Readable Size
    * @param {Integer} size
    */
@@ -142,7 +132,6 @@ module.exports = new (class Function {
     }
     return "";
   };
-
   /* Fix Instagram URL
    * @param {String|Integer} str
    */
@@ -151,45 +140,36 @@ module.exports = new (class Function {
     let header = await (await axios.get(str)).headers;
     return this.formatSize(header["content-length"]);
   };
-
   async dirSize(directory) {
     const files = await fs.readdirSync(directory);
     const stats = files.map((file) => fs.statSync(path.join(directory, file)));
-
     return (await Promise.all(stats)).reduce(
       (accumulator, { size }) => accumulator + size,
       0,
     );
   }
-
   sleep(ms) {
     return new Promise((a) => setTimeout(a, ms));
   }
-
   format(str) {
     return format(str);
   }
-
   Format(str) {
     return JSON.stringify(str, null, 2);
   }
-
   toDollar(x) {
     x = x.toString();
     var pattern = /(-?\d+)(\d{3})/;
     while (pattern.test(x)) x = x.replace(pattern, "$1.$2");
     return "$" + x;
   }
-
   jam(numer, options = {}) {
     let format = options.format ? options.format : "HH:mm";
     let jam = options?.timeZone
       ? moment(numer).tz(options.timeZone).format(format)
       : moment(numer).format(format);
-
     return `${jam}`;
   }
-
   tanggal(numer, timeZone = "") {
     const myMonths = [
       "Januari",
@@ -222,15 +202,12 @@ module.exports = new (class Function {
       thisDay = myDays[thisDay];
     var yy = tgl.getYear();
     var year = yy < 1000 ? yy + 1900 : yy;
-
     return `${thisDay}, ${day} ${myMonths[bulan]} ${year}`;
   }
-
   async getFile(PATH, save) {
     try {
       let filename = null;
       let data = await this.fetchBuffer(PATH);
-
       if (data?.data && save) {
         filename = path.join(
           process.cwd(),
@@ -247,7 +224,6 @@ module.exports = new (class Function {
       throw e;
     }
   }
-
   async fetchJson(url, options = {}) {
     try {
       let data = await axios.get(url, {
@@ -257,13 +233,11 @@ module.exports = new (class Function {
         responseType: "json",
         ...options,
       });
-
       return await data?.data;
     } catch (e) {
       throw e;
     }
   }
-
   fetchBuffer(string, options = {}) {
     return new Promise(async (resolve, reject) => {
       try {
@@ -275,7 +249,6 @@ module.exports = new (class Function {
             responseType: "arraybuffer",
             ...options,
           });
-
           let buffer = await data?.data;
           let name = /filename/i.test(data.headers?.get("content-disposition"))
             ? data.headers
@@ -287,7 +260,6 @@ module.exports = new (class Function {
             mimes.lookup(name) ||
             data.headers.get("content-type") ||
             (await fromBuffer(buffer))?.mime;
-
           resolve({
             data: buffer,
             size: Buffer.byteLength(buffer),
@@ -299,7 +271,6 @@ module.exports = new (class Function {
         } else if (/^data:.*?\/.*?base64,/i.test(string)) {
           let data = Buffer.from(string.split`,`[1], "base64");
           let size = Buffer.byteLength(data);
-
           resolve({
             data,
             size,
@@ -312,7 +283,6 @@ module.exports = new (class Function {
         } else if (fs.existsSync(string) && fs.statSync(string).isFile()) {
           let data = fs.readFileSync(string);
           let size = Buffer.byteLength(data);
-
           resolve({
             data,
             size,
@@ -324,7 +294,6 @@ module.exports = new (class Function {
           });
         } else if (Buffer.isBuffer(string)) {
           let size = Buffer?.byteLength(string) || 0;
-
           resolve({
             data: string,
             size,
@@ -337,7 +306,6 @@ module.exports = new (class Function {
         } else if (/^[a-zA-Z0-9+/]={0,2}$/i.test(string)) {
           let data = Buffer.from(string, "base64");
           let size = Buffer.byteLength(data);
-
           resolve({
             data,
             size,
@@ -350,7 +318,6 @@ module.exports = new (class Function {
         } else {
           let buffer = Buffer.alloc(20);
           let size = Buffer.byteLength(buffer);
-
           resolve({
             data: buffer,
             size,
@@ -366,13 +333,11 @@ module.exports = new (class Function {
       }
     });
   }
-
   mime(name) {
     let mimetype = mimes.lookup(name);
     if (!mimetype) return mimes.extension(name);
     return { mime: mimetype, ext: mimes.extension(mimetype) };
   }
-
   isUrl(url) {
     let regex = new RegExp(
       /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/,
@@ -381,50 +346,39 @@ module.exports = new (class Function {
     if (!regex.test(url)) return false;
     return url.match(regex);
   }
-
   escapeRegExp(string) {
     return string.replace(/[.*=+:\-?^${}()|[\]\\]|\s/g, "\\$&");
   }
-
   toUpper(query) {
     const arr = query.split(" ");
     for (var i = 0; i < arr.length; i++) {
       arr[i] = arr[i].charAt(0).toUpperCase() + arr[i].slice(1);
     }
-
     return arr.join(" ");
   }
-
   getRandom(ext = "", length = "10") {
     var result = "";
     var character =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
     var characterLength = character.length;
-
     for (var i = 0; i < length; i++) {
       result += character.charAt(Math.floor(Math.random() * characterLength));
     }
-
     return `${result}${ext ? `.${ext}` : ""}`;
   }
-
   pickRandom(list) {
     return list[Math.floor(Math.random() * list.length)];
   }
-
   formatSize(bytes, si = true, dp = 2) {
     const thresh = si ? 1000 : 1024;
-
     if (Math.abs(bytes) < thresh) {
       return `${bytes} B`;
     }
-
     const units = si
       ? ["kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
       : ["KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"];
     const r = 10 ** dp;
     let u = -1;
-
     do {
       bytes /= thresh;
       ++u;
@@ -432,20 +386,16 @@ module.exports = new (class Function {
       Math.round(Math.abs(bytes) * r) / r >= thresh &&
       u < units.length - 1
     );
-
     return `${bytes.toFixed(dp)} ${units[u]}`;
   }
-
   async resizeImage(buffer, height) {
     buffer = (await this.getFile(buffer)).data;
-
     return new Promise((resolve, reject) => {
       Jimp.read(buffer, (err, image) => {
         if (err) {
           reject(err);
           return;
         }
-
         image
           .resize(Jimp.AUTO, height)
           .getBuffer(Jimp.MIME_PNG, (err, resizedBuffer) => {
@@ -458,7 +408,6 @@ module.exports = new (class Function {
       });
     });
   }
-
   runtime(seconds) {
     seconds = Number(seconds);
     var d = Math.floor(seconds / (3600 * 24));
@@ -471,10 +420,8 @@ module.exports = new (class Function {
     var sDisplay = s > 0 ? s + (s == 1 ? " second" : " seconds") : "";
     return dDisplay + hDisplay + mDisplay + sDisplay;
   }
-
   reloadPlugin(type, file) {
     const filename = (file) => file.replace(/^.*[\\\/]/, "");
-
     switch (type) {
       case "delete":
         return delete global.plugins[file];
@@ -500,11 +447,9 @@ module.exports = new (class Function {
         break;
     }
   }
-
   timeSpeech() {
     let ucapanWaktu = "";
     let wakt = moment.tz("Asia/Jakarta").format("HH:mm");
-
     if (wakt < "23:59") ucapanWaktu = "Selamat Malam";
     if (wakt < "19:00") ucapanWaktu = "Selamat Petang";
     if (wakt < "18:00") ucapanWaktu = "Selamat Sore";
@@ -512,17 +457,13 @@ module.exports = new (class Function {
     if (wakt < "10:00") ucapanWaktu = "Selamat Pagi";
     if (wakt < "05:00") ucapanWaktu = "Selamat Subuh";
     if (wakt < "03:00") ucapanWaktu = "Selamat Tengah Malam";
-
     return ucapanWaktu;
   }
-
   pomf(media) {
     return new Promise(async (resolve, reject) => {
       let mime = await fromBuffer(media);
       let form = new FormData();
-
       form.append("files[]", media, `file-${Date.now()}.${mime.ext}`);
-
       axios
         .post("https://pomf.lain.la/upload.php", form, {
           headers: {
@@ -535,14 +476,11 @@ module.exports = new (class Function {
         .catch(reject);
     });
   }
-
   telegra(media) {
     return new Promise(async (resolve, reject) => {
       let mime = await fromBuffer(media);
       let form = new FormData();
-
       form.append("file", media, `file-${Date.now()}.${mime.ext}`);
-
       axios
         .post("https://telegra.ph/upload", form, {
           headers: {
@@ -555,14 +493,11 @@ module.exports = new (class Function {
         .catch(reject);
     });
   }
-
   hari(media) {
     return new Promise(async (resolve, reject) => {
       let mime = await fromBuffer(media);
       let form = new FormData();
-
       form.append("file", media, `file-${Date.now()}.${mime.ext}`);
-
       axios
         .post("https://hari.christmas/upload", form, {
           headers: {
@@ -575,14 +510,11 @@ module.exports = new (class Function {
         .catch(reject);
     });
   }
-
   tmp(media) {
     return new Promise(async (resolve, reject) => {
       let mime = await fromBuffer(media);
       let form = new FormData();
-
       form.append("file", media, `file-${Date.now()}.${mime.ext}`);
-
       axios
         .post("https://tmpfiles.org/api/v1/upload", form, {
           headers: {
@@ -599,7 +531,6 @@ module.exports = new (class Function {
         .catch(reject);
     });
   }
-
   async freeimage(buffer) {
     const { data: html } = await axios
       .get("https://freeimage.host/")
@@ -607,9 +538,7 @@ module.exports = new (class Function {
     const token = html.match(/PF.obj.config.auth_token = "(.+?)";/)[1];
     let mime = await fromBuffer(buffer);
     let form = new FormData();
-
     form.append("source", buffer, `file-${Date.now()}.${mime.ext}`);
-
     const options = {
       type: "file",
       action: "upload",
