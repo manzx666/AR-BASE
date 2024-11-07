@@ -15,7 +15,7 @@ const createClient = async (options = {}) => {
     timestamp: () => `,"time":"${new Date().toJSON()}"`,
   }).child({ class: "client" });
   logger.level = "fatal";
-  
+
   const store = makeInMemoryStore({ logger });
   const { state, saveCreds } = await useMultiFileAuthState(options.session);
   const client = WAConnect({
@@ -23,16 +23,16 @@ const createClient = async (options = {}) => {
     printQRInTerminal: true,
     browser: Browsers.ubuntu("Chrome"),
     auth: state,
-    ...options.connection, 
+    ...options.connection,
   });
   store.bind(client.ev);
   await Client({ client, store });
-  
+
   return { client, saveCreds, store };
 };
 
 async function getWAVersion() {
-  try { 
+  try {
     const { version, isLatest } = await fetchLatestWaWebVersion();
     return { version, isLatest };
   } catch (err) {
@@ -40,7 +40,7 @@ async function getWAVersion() {
     return { version, isLatest };
   }
 }
-  
+
 export { createClient };
 export { getWAVersion };
 export default {

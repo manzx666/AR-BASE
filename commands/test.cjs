@@ -1,6 +1,6 @@
 module.exports = {
-	cmd: ["test"],
-	execute: (m) => {
-		m.reply("Pong!")
-	}
-}
+  cmd: ["test"],
+  execute: (m) => {
+    m.reply("Pong!");
+  },
+};

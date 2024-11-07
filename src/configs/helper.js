@@ -1,10 +1,10 @@
 // @ts-check
-import os from 'os';
-import path from 'path';
-import { fileURLToPath, pathToFileURL } from 'url';
-import { createRequire } from 'module';
-import fs from 'fs';
-import Stream, { Readable } from 'stream';
+import os from "os";
+import path from "path";
+import { fileURLToPath, pathToFileURL } from "url";
+import { createRequire } from "module";
+import fs from "fs";
+import Stream, { Readable } from "stream";
 
 /**
  * @param {ImportMeta | string} pathURL
@@ -12,7 +12,7 @@ import Stream, { Readable } from 'stream';
  */
 const __filename = function filename(
   pathURL = import.meta,
-  rmPrefix = os.platform() !== 'win32'
+  rmPrefix = os.platform() !== "win32",
 ) {
   const path =
     /** @type {ImportMeta} */ (pathURL).url || /** @type {String} */ (pathURL);
@@ -32,7 +32,7 @@ const __dirname = function dirname(pathURL) {
   return regex.test(dir)
     ? dir
     : fs.existsSync(dir) && fs.statSync(dir).isDirectory()
-      ? dir.replace(regex, '')
+      ? dir.replace(regex, "")
       : path.dirname(dir); // windows
 };
 
@@ -57,27 +57,27 @@ const checkFileExists = (file) =>
 const saveStreamToFile = (stream, file) =>
   new Promise((resolve, reject) => {
     const writable = stream.pipe(fs.createWriteStream(file));
-    writable.once('finish', () => {
+    writable.once("finish", () => {
       resolve();
       writable.destroy();
     });
-    writable.once('error', () => {
+    writable.once("error", () => {
       reject();
       writable.destroy();
     });
   });
 
-const kDestroyed = Symbol('kDestroyed');
-const kIsReadable = Symbol('kIsReadable');
+const kDestroyed = Symbol("kDestroyed");
+const kIsReadable = Symbol("kIsReadable");
 const isReadableNodeStream = (obj, strict = false) => {
   return !!(
     (
       obj &&
-      typeof obj.pipe === 'function' &&
-      typeof obj.on === 'function' &&
+      typeof obj.pipe === "function" &&
+      typeof obj.on === "function" &&
       (!strict ||
-        (typeof obj.pause === 'function' &&
-          typeof obj.resume === 'function')) &&
+        (typeof obj.pause === "function" &&
+          typeof obj.resume === "function")) &&
       (!obj._writableState || obj._readableState?.readable !== false) && // Duplex
       (!obj._writableState || obj._readableState)
     ) // Writable has .pipe.
@@ -88,8 +88,8 @@ const isNodeStream = (obj) => {
     obj &&
     (obj._readableState ||
       obj._writableState ||
-      (typeof obj.write === 'function' && typeof obj.on === 'function') ||
-      (typeof obj.pipe === 'function' && typeof obj.on === 'function'))
+      (typeof obj.write === "function" && typeof obj.on === "function") ||
+      (typeof obj.pipe === "function" && typeof obj.on === "function"))
   );
 };
 const isDestroyed = (stream) => {
@@ -103,16 +103,16 @@ const isReadableFinished = (stream, strict) => {
   if (!isReadableNodeStream(stream)) return null;
   const rState = stream._readableState;
   if (rState?.errored) return false;
-  if (typeof rState?.endEmitted !== 'boolean') return null;
+  if (typeof rState?.endEmitted !== "boolean") return null;
   return !!(
     rState.endEmitted ||
     (strict === false && rState.ended === true && rState.length === 0)
   );
 };
 const isReadableStream = (stream) => {
-  if (typeof Stream.isReadable === 'function') return Stream.isReadable(stream);
+  if (typeof Stream.isReadable === "function") return Stream.isReadable(stream);
   if (stream && stream[kIsReadable] != null) return stream[kIsReadable];
-  if (typeof stream?.readable !== 'boolean') return null;
+  if (typeof stream?.readable !== "boolean") return null;
   if (isDestroyed(stream)) return false;
   return (
     (isReadableNodeStream(stream) &&

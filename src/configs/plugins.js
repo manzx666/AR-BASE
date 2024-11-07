@@ -1,23 +1,23 @@
 import config from "./config.js";
-import fs, { existsSync, watch } from 'fs';
-import { join, resolve } from 'path';
-import * as os from 'os';
-import syntaxerror from 'syntax-error';
+import fs, { existsSync, watch } from "fs";
+import { join, resolve } from "path";
+import * as os from "os";
+import syntaxerror from "syntax-error";
 import { createRequire } from "module";
 import path from "path";
-import Helper from './helper.js';
+import Helper from "./helper.js";
 
 const __dirname = Helper.__dirname(import.meta);
-const rootDirectory = Helper.__dirname(join(__dirname, '../'));
+const rootDirectory = Helper.__dirname(join(__dirname, "../"));
 const pluginFolder = Helper.__dirname(
-  join(__dirname, '../../' + config.commands)
+  join(__dirname, "../../" + config.commands),
 );
 const pluginFilter = (filename) => /\.(js|mjs|cjs)$/.test(filename);
 const require = createRequire(import.meta.url);
 
 async function importFile(module) {
   module = Helper.__filename(module);
-  
+
   const ext = path.extname(module);
   let result;
 

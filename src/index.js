@@ -55,7 +55,9 @@ async function WAStart() {
     logger: client.logger,
     recursiveRead: true,
   })
-    .then((plugins) => client.logger.info("Plugins Loader Success!\n", Object.keys(plugins)))
+    .then((plugins) =>
+      client.logger.info("Plugins Loader Success!\n", Object.keys(plugins)),
+    )
     .catch(console.error);
 
   connectionUpdate(client, WAStart);
