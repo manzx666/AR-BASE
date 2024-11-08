@@ -5,7 +5,7 @@ import { createRequire } from "module";
 import cp, { exec as _exec } from "child_process";
 let exec = util.promisify(_exec).bind(cp);
 
-export async function before(m) {
+export async function before(m, { API, plugins, Func }) {
   if (m.isBaileys) return;
   if (!m.isOwner) return;
 

@@ -284,7 +284,7 @@ function Client({ client: conn, store }) {
         options = {},
         smlcap = { smlcap: true },
       ) {
-        let isSmlcap = global.db.data.settings.smlcap && smlcap.smlcap;
+        let isSmlcap = global.db.settings.smlcap && smlcap.smlcap;
         let ephemeral =
           conn.chats[jid]?.metadata?.ephemeralDuration ||
           conn.chats[jid]?.ephemeralDuration ||
@@ -697,84 +697,6 @@ function Client({ client: conn, store }) {
       enumerable: true,
       writable: true,
     },
-    sendQuick: {
-      async value(
-        jid,
-        message,
-        footer,
-        media = null,
-        buttons,
-        quoted,
-        options = {},
-      ) {
-        let header = {
-          hasMediaAttachment: false,
-        };
-        if (media) {
-          let { mime, data: buffer, ext, size } = await Function.getFile(media);
-          if (/image|video/i.test(mime)) {
-            let media;
-            if (/image/i.test(mime)) {
-              media = await prepareWAMessageMedia(
-                { image: buffer },
-                { upload: conn.waUploadToServer },
-              );
-            } else if (/video/i.test(mime)) {
-              media = await prepareWAMessageMedia(
-                { video: buffer },
-                { upload: conn.waUploadToServer },
-              );
-            }
-            header = {
-              hasMediaAttachment: true,
-              ...media,
-            };
-          }
-        }
-        let buttonsArray = buttons.map(([buttonText, quickText]) => ({
-          name: "quick_reply",
-          buttonParamsJson: JSON.stringify({
-            display_text: buttonText,
-            id: quickText,
-          }),
-        }));
-        let content = {
-          viewOnceMessage: {
-            message: {
-              messageContextInfo: {
-                deviceListMetadata: {},
-                deviceListMetadataVersion: 2,
-              },
-              interactiveMessage: proto.Message.InteractiveMessage.create({
-                body: proto.Message.InteractiveMessage.Body.create({
-                  text: message,
-                }),
-                footer: proto.Message.InteractiveMessage.Footer.create({
-                  text: footer,
-                }),
-                header: proto.Message.InteractiveMessage.Header.create(header),
-                nativeFlowMessage:
-                  proto.Message.InteractiveMessage.NativeFlowMessage.create({
-                    buttons: buttonsArray,
-                  }),
-                contextInfo: options.contextInfo || {},
-              }),
-            },
-          },
-        };
-        let msg = generateWAMessageFromContent(
-          jid,
-          content,
-          { quoted: quoted, ephemeralExpiration: WA_DEFAULT_EPHEMERAL },
-          { quoted, userJid: quoted.key.remoteJid },
-        );
-        await conn.relayMessage(jid, msg.message, {
-          messageId: msg.key.id,
-        });
-      },
-      enumerable: true,
-      writable: true,
-    },
     reply: {
       /**
        * Reply to a message
@@ -784,12 +706,12 @@ function Client({ client: conn, store }) {
        * @param {Object} options
        */
       value(jid, text = "", quoted, options = {}, smlcap = { smlcap: true }) {
-        let isSmlcap = global.db.data.settings.smlcap && smlcap.smlcap;
+        let isSmlcap = global.db.settings.smlcap && smlcap.smlcap;
         let ephemeral =
           conn.chats[jid]?.metadata?.ephemeralDuration ||
           conn.chats[jid]?.ephemeralDuration ||
           false;
-        if (global.db.data.settings.adReply) {
+        if (global.db.settings.adReply) {
           let thumb = ["thumb-1", "thumb-2", "thumb-3", "thumb-4", "thumb-5"];
           return Buffer.isBuffer(text)
             ? conn.sendFile(jid, text, "file", "", quoted, false, options)
@@ -834,7 +756,7 @@ function Client({ client: conn, store }) {
         options = {},
         smlcap = { smlcap: true },
       ) {
-        let isSmlcap = global.db.data.settings.smlcap && smlcap.smlcap;
+        let isSmlcap = global.db.settings.smlcap && smlcap.smlcap;
         let ephemeral =
           conn.chats[jid]?.metadata?.ephemeralDuration ||
           conn.chats[jid]?.ephemeralDuration ||
@@ -909,7 +831,7 @@ ${list
         } else {
           await conn.reply(jid, caption, m, options, smlcap);
         }
-        global.db.data.bots.replyText[metadata] = {
+        global.db.bots.replyText[metadata] = {
           text: caption,
           list: list,
           command: false,
@@ -950,7 +872,7 @@ Silahkan Reply/Balas pesan ini dengan *${list.length > 0 ? list[0][1] : ""}*${li
         } else {
           await conn.reply(jid, caption, m, options, smlcap);
         }
-        global.db.data.bots.replyText[metadata] = {
+        global.db.bots.replyText[metadata] = {
           text: caption,
           list: list,
           command: false,
@@ -986,7 +908,7 @@ ${text}
         } else {
           await conn.reply(jid, caption, m, options, smlcap);
         }
-        global.db.data.bots.replyText[metadata] = {
+        global.db.bots.replyText[metadata] = {
           text: caption,
           list: false,
           command: input,
@@ -1156,92 +1078,6 @@ ${text}
           },
           { quoted: m },
         );
-      },
-      enumerable: false,
-      writable: true,
-    },
-    sendTemplate: {
-      async value(jid, templateMessage, quoted = null) {
-        const buttons = templateMessage.templateButtons.map((button) => {
-          if (button.urlButton) {
-            return {
-              name: "cta_url",
-              buttonParamsJson: `{"display_text":"${button.urlButton.displayText}","url":"${button.urlButton.url}","merchant_url":"${button.urlButton.url}"}`,
-            };
-          } else if (button.callButton) {
-            return {
-              name: "cta_call",
-              buttonParamsJson: `{"display_text":"${button.callButton.displayText}","id":"${button.callButton.phoneNumber}"}`,
-            };
-          } else if (button.quickReplyButton) {
-            return {
-              name: "quick_reply",
-              buttonParamsJson: `{"display_text":"${button.quickReplyButton.displayText}","id":"${button.quickReplyButton.id}"}`,
-            };
-          } else if (button.copyButton) {
-            return {
-              name: "cta_copy",
-              buttonParamsJson: `{"display_text":"${button.copyButton.displayText}","id":"${button.copyButton.id}","copy_code":"${button.copyButton.code}"}`,
-            };
-          }
-        });
-        let header = proto.Message.InteractiveMessage.Header.fromObject({
-          title: templateMessage.title,
-          subtitle: "",
-          hasMediaAttachment: false,
-        });
-        if (templateMessage.image) {
-          header = {
-            ...header,
-            ...(await prepareWAMessageMedia(
-              { image: templateMessage.image },
-              { upload: conn.waUploadToServer },
-            )),
-          };
-        } else if (templateMessage.video) {
-          header = {
-            ...header,
-            ...(await prepareWAMessageMedia(
-              { video: templateMessage.video },
-              { upload: conn.waUploadToServer },
-            )),
-          };
-        }
-        let msg = generateWAMessageFromContent(
-          jid,
-          {
-            viewOnceMessage: {
-              message: {
-                messageContextInfo: {
-                  deviceListMetadata: {},
-                  deviceListMetadataVersion: 2,
-                },
-                interactiveMessage: proto.Message.InteractiveMessage.fromObject(
-                  {
-                    body: proto.Message.InteractiveMessage.Body.fromObject({
-                      text: templateMessage.text,
-                    }),
-                    footer: proto.Message.InteractiveMessage.Footer.fromObject({
-                      text: templateMessage.footer,
-                    }),
-                    header: header,
-                    nativeFlowMessage:
-                      proto.Message.InteractiveMessage.NativeFlowMessage.fromObject(
-                        {
-                          buttons: buttons,
-                        },
-                      ),
-                  },
-                ),
-              },
-            },
-          },
-          { quoted, userJid: quoted.key.remoteJid },
-        );
-        await conn.relayMessage(jid, msg.message, {
-          messageId: msg.key.id,
-        });
-        return msg;
       },
       enumerable: false,
       writable: true,

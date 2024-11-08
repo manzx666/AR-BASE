@@ -6,7 +6,7 @@ export default {
   isGroup: true,
   isAdmin: true,
   isBotAdmin: true,
-  execute: async (m, { client }) => { 
+  execute: async (m, { client }) => {
     let isClose = {
       // Switch Case Like :v
       open: "not_announcement",

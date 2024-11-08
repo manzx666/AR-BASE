@@ -101,7 +101,7 @@ npm run stop:pm2
 ├── eslint.config.js
 ├── package-lock.json
 ├── package.json
-├── commands 
+├── commands
 ├── src
 │   ├── configs
 │   │   ├── config.js
@@ -134,6 +134,7 @@ TQTO (Thanks To) is a part of this project to give appreciation to those who hav
 Thank you to the following individuals, communities and organizations who have helped us:
 
 ### Developers & Contributors
+
 - [**Arifzyn XD**](https://github.com/Arifzyn19) - Lead developer and project owner, responsible for the main development and overall direction of the project.
 - [**AmirulDev**](https://github.com/amiruldev20) - Provided inspiration and valuable insights, especially in building bot functionalities using libraries like Baileys.
 - [**DikaArdnt**](https://github.com/DikaArdnt) - Some parts of the codebase were inspired and adapted from his projects, particularly for bot features and backend structure.

@@ -58,6 +58,8 @@ const getDefaultSettings = () => ({
   reactstory: false,
   autoread: false,
   self: false,
+  smlcap: false,
+  adReply: false,
   topup: [],
   ch_id: "120363181344949815@newsletter",
   ch_name: "Arifzyn Infomation",
@@ -78,6 +80,17 @@ const getDefaultSettings = () => ({
 });
 
 /**
+ * Initialize default bot data
+ * @returns {Object} Default bot object
+ */
+const getDefaultBot = () => ({
+  replyText: {},
+  rating: {},
+  menfess: {},
+  anonymous: {},
+});
+
+/**
  * Load and validate database entries
  * @param {Object} m Message object
  */
@@ -86,6 +99,7 @@ function loadDatabase(m) {
   if (!global.db.users) global.db.users = {};
   if (!global.db.groups) global.db.groups = {};
   if (!global.db.settings) global.db.settings = {};
+  if (!global.db.bots) global.db.bots = {};
 
   let user = global.db.users[m.sender];
   if (!validators.isObject(user)) {
@@ -121,6 +135,18 @@ function loadDatabase(m) {
     for (const [key, value] of Object.entries(defaultSettings)) {
       if (!(key in settings) || typeof settings[key] !== typeof value) {
         settings[key] = value;
+      }
+    }
+  }
+
+  let bots = global.db.bots;
+  if (!validators.isObject(bots)) {
+    global.db.bots = getDefaultBot();
+  } else {
+    const defaultBot = getDefaultBot();
+    for (const [key, value] of Object.entries(defaultBot)) {
+      if (!(key in bots) || typeof bots[key] !== typeof value) {
+        bots[key] = value;
       }
     }
   }

@@ -135,11 +135,19 @@ const handleMessagesUpsert = async (client, store, m, messages) => {
 
       try {
         if (typeof plugin.all === "function") {
-          await plugin.all.call(client, m, { messages });
+          await plugin.all.call(client, m, { messages, plugins, API });
         }
 
         if (typeof plugin.before === "function") {
-          if (await plugin.before.call(client, m, { messages })) continue;
+          if (
+            await plugin.before.call(client, m, {
+              messages,
+              plugins,
+              API,
+              Func,
+            })
+          )
+            continue;
         }
 
         if (m.prefix) {
