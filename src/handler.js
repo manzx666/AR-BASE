@@ -1,3 +1,8 @@
+/**
+ * Enhanced Message Handler for WhatsApp Bot
+ * Integrates with database and handles plugin execution
+ */
+
 import config from "./configs/config.js";
 import baileys from "@whiskeysockets/baileys";
 import Color from "./lib/color.js";
@@ -12,42 +17,117 @@ import Func from "./lib/function.js";
 const { delay, jidNormalizedUser } = baileys;
 const API = new ArifzynAPI();
 
+/**
+ * Check user permissions and status
+ * @param {Object} m Message object
+ * @param {Object} db Database object
+ * @returns {Object} User permissions
+ */
+const checkUserPermissions = (m, db) => {
+  const user = db.users[m.sender];
+  return {
+    isPrems: user?.premium || m.isOwner,
+    isVIP: user?.VIP || m.isOwner,
+    isBanned: user?.banned || false,
+    userLimit: user?.limit || 0,
+    userLevel: user?.level || 1,
+    userExp: user?.exp || 0
+  };
+};
+
+/**
+ * Check group settings
+ * @param {Object} m Message object
+ * @param {Object} db Database object
+ * @returns {Object} Group settings
+ */
+const checkGroupSettings = (m, db) => {
+  if (!m.isGroup) return {};
+  const group = db.groups[m.chat];
+  return {
+    isMuted: group?.mute || false,
+    isWelcome: group?.welcome || false,
+    isLeave: group?.leave || false,
+    isAntilink: group?.antilink || false,
+    isAntispam: group?.antispam || false,
+    isNotification: group?.notification || false
+  };
+};
+
+/**
+ * Log message details with color
+ * @param {Object} client Bot client
+ * @param {Object} m Message object
+ */
+const logMessage = async (client, m) => {
+  if (!m.message) return;
+  
+  console.log(
+    Color.cyan("From"),
+    Color.cyan(await client.getName(m.chat)),
+    Color.blueBright(m.chat)
+  );
+  console.log(
+    Color.yellowBright("Chat Type"),
+    Color.yellowBright(
+      m.isGroup
+        ? `Group (${m.sender} : ${await client.getName(m.sender)})`
+        : "Private"
+    )
+  );
+  console.log(
+    Color.greenBright("Message:"),
+    Color.greenBright(m.body || m.type)
+  );
+};
+
+/**
+ * Check plugin execution conditions
+ * @param {Object} plugin Plugin object
+ * @param {Object} m Message object
+ * @param {Object} groupSettings Group settings
+ * @param {Object} userPerms User permissions
+ * @returns {boolean|string} False if can execute, error message if cannot
+ */
+const checkPluginConditions = (plugin, m, groupSettings, userPerms) => {
+  if (plugin.isOwner && !m.isOwner) return "owner";
+  if (plugin.isPremium && !userPerms.isPrems) return "premium";
+  if (plugin.isVIP && !userPerms.isVIP) return "VIP";
+  if (plugin.isGroup && !m.isGroup) return "group";
+  if (plugin.isBotAdmin && !m.isBotAdmin) return "botAdmin";
+  if (plugin.isAdmin && !m.isAdmin) return "admin";
+  if (plugin.isPrivate && m.isGroup) return "private";
+  if (plugin.isQuoted && !m.isQuoted) return "quoted";
+  
+  if (m.isGroup) {
+    if (plugin.isNsfw && !groupSettings.isNsfw) return "NSFW tidak aktif";
+    if (plugin.isGame && !groupSettings.isGame) return "Game tidak aktif di chat ini";
+  }
+  
+  return false;
+};
+
 const handleMessagesUpsert = async (client, store, m, messages) => {
   try {
     await loadDatabase(m);
+    
     const quoted = m.isQuoted ? m.quoted : m;
-
-    if (m.isBaileys || (config.self && !m.isOwner)) return;
-    if (m.chat && m.isGroup && db.groups[m.chat]?.mute && !m.isOwner) return;
-
-    if (m.message) {
-      console.log(
-        Color.cyan("From"),
-        Color.cyan(await client.getName(m.chat)),
-        Color.blueBright(m.chat),
-      );
-      console.log(
-        Color.yellowBright("Chat Type"),
-        Color.yellowBright(
-          m.isGroup
-            ? `Group (${m.sender} : ${await client.getName(m.sender)})`
-            : "Private",
-        ),
-      );
-      console.log(
-        Color.greenBright("Message:"),
-        Color.greenBright(m.body || m.type),
-      );
+    
+    if (m.isBaileys) return;
+    if (config.self && !m.isOwner) return;
+    
+    const userPerms = checkUserPermissions(m, global.db);
+    const groupSettings = checkGroupSettings(m, global.db);
+    
+    if (m.isGroup && groupSettings.isMuted && !m.isOwner) return;
+    
+    if (userPerms.isBanned && !m.isOwner) {
+      m.reply('Maaf, akun anda sedang dibanned!');
+      return;
     }
-
-    const checkConditions = (condition, message) => {
-      if (condition) {
-        m.reply(config.msg[message] || message);
-        return true;
-      }
-      return false;
-    };
-
+    
+    await logMessage(client, m);
+    
     for (let name in plugins) {
       const plugin = plugins[name];
       if (!plugin || plugin.disabled) continue;
@@ -56,11 +136,11 @@ const handleMessagesUpsert = async (client, store, m, messages) => {
         if (typeof plugin.all === "function") {
           await plugin.all.call(client, m, { messages });
         }
-
+        
         if (typeof plugin.before === "function") {
           if (await plugin.before.call(client, m, { messages })) continue;
         }
-
+        
         if (m.prefix) {
           const { args, text, prefix } = m;
           const isCommand = (m.prefix && m.body.startsWith(m.prefix)) || false;
@@ -74,33 +154,21 @@ const handleMessagesUpsert = async (client, store, m, messages) => {
 
           m.plugin = name;
           m.isCommand = true;
-
-          if (checkConditions(plugin.isOwner && !m.isOwner, "owner")) continue;
-          if (checkConditions(plugin.isPremium && !isPrems, "premium"))
+          
+          const conditionError = checkPluginConditions(plugin, m, groupSettings, userPerms);
+          if (conditionError) {
+            m.reply(config.msg[conditionError] || conditionError);
             continue;
-          if (
-            checkConditions(
-              plugin.isNsfw && m.isGroup && !db.chats[m.chat]?.nsfw,
-              "NSFW Tidak aktif.",
-            )
-          )
-            continue;
-          if (
-            checkConditions(
-              plugin.isGame && m.isGroup && !db.chats[m.chat]?.game,
-              "Game Tidak aktif di chat ini.",
-            )
-          )
-            continue;
-          if (checkConditions(plugin.isGroup && !m.isGroup, "group")) continue;
-          if (checkConditions(plugin.isBotAdmin && !m.isBotAdmin, "botAdmin"))
-            continue;
-          if (checkConditions(plugin.isAdmin && !m.isAdmin, "admin")) continue;
-          if (checkConditions(plugin.isPrivate && m.isGroup, "private"))
-            continue;
-          if (checkConditions(plugin.isQuoted && !m.isQuoted, "quoted"))
-            continue;
-
+          }
+          
+          if (plugin.limit && !m.isOwner) {
+            if (userPerms.userLimit < plugin.limit) {
+              m.reply(`Limit anda tidak cukup untuk menggunakan fitur ini\nLimit yang dibutuhkan: ${plugin.limit}\nLimit anda: ${userPerms.userLimit}`);
+              continue;
+            }
+            global.db.users[m.sender].limit -= plugin.limit;
+          }
+          
           try {
             await plugin.execute(m, {
               client,
@@ -112,9 +180,15 @@ const handleMessagesUpsert = async (client, store, m, messages) => {
               plugins,
               store,
               API,
-              plugins,
               Func,
+              userPerms,
+              groupSettings
             });
+            
+            if (plugin.exp && !m.isOwner) {
+              const expGain = typeof plugin.exp === 'number' ? plugin.exp : 1;
+              global.db.users[m.sender].exp += expGain;
+            }
           } catch (error) {
             console.error(`Error in plugin ${name}:`, error);
             m.reply(util.format(error));
@@ -123,10 +197,7 @@ const handleMessagesUpsert = async (client, store, m, messages) => {
               try {
                 await plugin.after.call(m, { client });
               } catch (error) {
-                console.error(
-                  `Error in after function of plugin ${name}:`,
-                  error,
-                );
+                console.error(`Error in after function of plugin ${name}:`, error);
               }
             }
           }

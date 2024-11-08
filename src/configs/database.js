@@ -9,8 +9,8 @@ if (/mongo/.test(config.database)) {
     constructor(url) {
       this.url = url;
       this.options = {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
+        useNewUrlParser: false,
+        useUnifiedTopology: false,
       };
       this.connection = this.url || config.database;
       this.model = {
