@@ -16,6 +16,7 @@ export default {
   writeStore: false,
   session: process.env.SESSION || "",
   database: process.env.DATABASE || "",
+  mongoURi: process.env.MONGO_URi || "",
   commands: "commands",
   msg: {
     owner: "Fitur ini hanya dapat diakses oleh pemilik!",

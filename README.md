@@ -8,12 +8,12 @@
 
 # AR-BASE
 
-**AR-BASE** adalah bot WhatsApp yang dirancang untuk membalas secara otomatis. Bot ini menggunakan library **Baileys** untuk berinteraksi dengan API WhatsApp Web dan mudah diatur serta digunakan.
+**AR-BASE** is a WhatsApp bot designed to auto-reply. It uses the **Baileys** library to interact with the WhatsApp Web API and is easy to set up and use.
 
-## Fitur
+## Features
 
-- Performa ringan dan efisien.
-- Sistem perintah yang mendukung berbagai fungsi.
+- Light and efficient performance.
+- Command system that supports various functions.
 
 ## Table of Contents
 
@@ -28,20 +28,29 @@
 
 ## Configurasi
 
-Untuk mengonfigurasi bot, Anda perlu membuat file `.env` di direktori utama proyek. File ini berisi semua variabel lingkungan yang diperlukan untuk menjalankan bot dengan benar. Anda dapat menggunakan file `.env.example` sebagai panduan.
+To configure the bot, you need to create a `.env` file in the project's root directory. This file contains all the environment variables needed to run the bot properly. You can use
 
-### Langkah-langkah:
+### Steps:
 
-1. **Salin file `.env.example`:**
-   Di dalam direktori utama proyek, temukan file bernama `.env.example`. Salin file ini dan beri nama `.env`.
+1. **Copy files `.env.example`:**
+   Inside the project's root directory, find a file named `.env.example`. Copy this file and rename it `.env`.
 
 ```bash
 cp .env.example .env
 ```
 
-2. **Isi variabel lingkungan:**
-   Buka file `.env` yang baru saja Anda buat dan isi nilai-nilai yang ada di file
+2. **Fill in the environment variables:**
+   Open the `.env` file you just created and fill in the values in the file.
+Steps:
 
+1. **Copy the `.env.example` file:**
+In the project's root directory, find a file named `.env.example`. Copy this file and rename it `.env`.
+
+```bash
+cp .env.example .env
+```
+
+2. 
 ## Installation
 
 1. Clone the repository:
@@ -100,38 +109,49 @@ npm run stop:pm2
 ### Directory Structure
 
 ```
-.
 ├── LICENSE
 ├── README.md
+├── eslint.config.js
 ├── package-lock.json
 ├── package.json
+├── commands 
 ├── src
-│   ├── commands
-│   │   ├── menu.js
-│   │   └── ping.js
 │   ├── configs
-│   │   └── config.js
+│   │   ├── config.js
+│   │   ├── database.js
+│   │   ├── helper.js
+│   │   ├── localdb.js
+│   │   └── plugins.js
 │   ├── events
-│   │   ├── connectionUpdate.js
-│   │   ├── groupEvents.js
-│   │   └── messageHandler.js
+│   │   ├── connection.js
+│   │   ├── groups.js
+│   │   └── messages.js
 │   ├── handler.js
 │   ├── index.js
 │   └── lib
 │       ├── client.js
 │       ├── color.js
-│       ├── commands.js
-│       ├── database.js
 │       ├── emoji.js
 │       ├── function.js
-│       ├── loadDB.js
 │       ├── serialize.js
 │       └── sticker.js
 └── temp
-    └── database.json
 ```
 
-### License
+# TQTO
+
+TQTO (Thanks To) is a part of this project to give appreciation to those who have contributed, provided assistance, or inspiration in the development of this project.
+
+## Thank You List
+
+Thank you to the following individuals, communities and organizations who have helped us:
+
+### Developers & Contributors
+- [**Arifzyn XD**](https://github.com/Arifzyn19) - Lead developer and project owner, responsible for the main development and overall direction of the project.
+- [**AmirulDev**](https://github.com/amiruldev20/mywabot-baileys) - Provided inspiration and valuable insights, especially in building bot functionalities using libraries like Baileys.
+- [**DikaArdnt**](https://github.com/DikaArdnt) - Some parts of the codebase were inspired and adapted from his projects, particularly for bot features and backend structure.
+
+### LICENSE
 
 This project is licensed under the MIT License. See the LICENSE file for details.
 
