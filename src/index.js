@@ -30,22 +30,22 @@ async function WAStart() {
   });
 
   const database = new Database();
-const content = await database.read();
+  const content = await database.read();
 
-if (!content || Object.keys(content).length === 0) {
+  if (!content || Object.keys(content).length === 0) {
     global.db = {
       users: {},
       groups: {},
       settings: {},
       ...(content || {}),
     };
-    
+
     await database.write(global.db);
-    client.logger.info('Database has been initialized successfully.');
-} else {
+    client.logger.info("Database has been initialized successfully.");
+  } else {
     global.db = content;
-    client.logger.info('Database loaded successfully.');
-}
+    client.logger.info("Database loaded successfully.");
+  }
 
   if (pairingCode && !client.authState.creds.registered) {
     let phoneNumber = pairingCode.replace(/[^0-9]/g, "");
@@ -59,9 +59,7 @@ if (!content || Object.keys(content).length === 0) {
     logger: client.logger,
     recursiveRead: true,
   })
-    .then((plugins) =>
-      client.logger.info("Plugins Loader Success!"),
-    )
+    .then((plugins) => client.logger.info("Plugins Loader Success!"))
     .catch(console.error);
 
   connectionUpdate(client, WAStart);

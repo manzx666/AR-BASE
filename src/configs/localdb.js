@@ -9,7 +9,7 @@ const validators = {
   isBoolean: (x) => typeof x === "boolean",
   isString: (x) => typeof x === "string",
   isObject: (x) => typeof x === "object" && x !== null,
-  isArray: (x) => Array.isArray(x)
+  isArray: (x) => Array.isArray(x),
 };
 
 /**
@@ -27,7 +27,7 @@ const getDefaultUser = (m) => ({
   exp: 0,
   limit: 10,
   warning: 0,
-  lastDaily: 0
+  lastDaily: 0,
 });
 
 /**
@@ -44,8 +44,8 @@ const getDefaultGroup = () => ({
   notification: true,
   moderation: {
     enabled: false,
-    filters: []
-  }
+    filters: [],
+  },
 });
 
 /**
@@ -68,13 +68,13 @@ const getDefaultSettings = () => ({
   limit: {
     free: 10,
     premium: 100,
-    reset: "00:00"
+    reset: "00:00",
   },
   maintenance: false,
   backup: {
     enabled: true,
-    interval: 24 // hours
-  }
+    interval: 24, // hours
+  },
 });
 
 /**
@@ -86,7 +86,7 @@ function loadDatabase(m) {
   if (!global.db.users) global.db.users = {};
   if (!global.db.groups) global.db.groups = {};
   if (!global.db.settings) global.db.settings = {};
-  
+
   let user = global.db.users[m.sender];
   if (!validators.isObject(user)) {
     global.db.users[m.sender] = getDefaultUser(m);
@@ -98,7 +98,7 @@ function loadDatabase(m) {
       }
     }
   }
-  
+
   if (m.isGroup) {
     let group = global.db.groups[m.chat];
     if (!validators.isObject(group)) {
@@ -112,7 +112,7 @@ function loadDatabase(m) {
       }
     }
   }
-  
+
   let settings = global.db.settings;
   if (!validators.isObject(settings)) {
     global.db.settings = getDefaultSettings();
