@@ -3,9 +3,6 @@ const cmd = {
   name: ["menu"],
   category: ["main"],
   desc: "Menampilkan menu bot",
-  options: {
-    text: "query",
-  },
   isGroup: false,
   isPrivate: false,
   isAdmin: false,
@@ -85,6 +82,56 @@ cmd.execute = async (
     menuText += `◦ Level: ${userPerms.userLevel}\n`;
     menuText += `◦ Exp: ${userPerms.userExp}\n\n`;
 
+    // If text parameter is provided, show detailed help for specific command
+    if (text) {
+      const plugin = Object.values(plugins).find((plugin) => {
+        if (plugin && plugin.name) {
+          const names = Array.isArray(plugin.name)
+            ? plugin.name
+            : [plugin.name];
+          return names.some((n) => n && n.toLowerCase() === text.toLowerCase());
+        }
+        return false;
+      });
+
+      if (plugin) {
+        const allNames = Array.isArray(plugin.name)
+          ? plugin.name
+          : [plugin.name];
+
+        let helpText = `🔍 *Command Details*\n\n`;
+        helpText += `◦ Names: ${allNames.map((n) => prefix + n).join(", ")}\n`;
+        helpText += `◦ Category: ${Array.isArray(plugin.category) ? plugin.category.join(", ") : plugin.category || "Uncategorized"}\n`;
+        helpText += `◦ Description: ${plugin.desc || "No description"}\n`;
+        helpText += `◦ Usage: ${prefix}${allNames[0]} ${Object.entries(
+          plugin.options || {},
+        )
+          .map(([k, v]) => `<${v}>`)
+          .join(" ")}\n\n`;
+
+        helpText += `📝 Options:\n`;
+        Object.entries(plugin.options || {}).forEach(([key, value]) => {
+          helpText += `◦ ${key}: ${value}\n`;
+        });
+
+        helpText += `\n📋 Requirements:\n`;
+        helpText += `${plugin.isGroup ? "◦ Group\n" : ""}`;
+        helpText += `${plugin.isAdmin ? "◦ Admin Group\n" : ""}`;
+        helpText += `${plugin.isBotAdmin ? "◦ Bot Admin\n" : ""}`;
+        helpText += `${plugin.isPrivate ? "◦ Private Chat\n" : ""}`;
+        helpText += `${plugin.isPremium ? "◦ Premium User\n" : ""}`;
+        helpText += `${plugin.isVIP ? "◦ VIP User\n" : ""}`;
+        helpText += `${plugin.isOwner ? "◦ Owner\n" : ""}`;
+        helpText += `${plugin.isQuoted ? "◦ Quoted Message\n" : ""}`;
+        helpText += `${plugin.limit ? `◦ Limit: ${plugin.limit}\n` : ""}`;
+
+        return m.reply(helpText);
+      } else {
+        return m.reply(`Command "${text}" not found.`);
+      }
+    }
+
+    // Display regular menu if no specific command is requested
     const sortedCategories = Object.entries(commandsByCategory).sort(
       ([a], [b]) => a.localeCompare(b),
     );
@@ -113,53 +160,7 @@ cmd.execute = async (
     menuText += `Ⓥ = VIP\n\n`;
     menuText += `Ketik ${prefix}help <command> untuk melihat detail command`;
 
-    if (text) {
-      const pluginName = Object.keys(plugins).find((name) => {
-        const plugin = plugins[name];
-        return (
-          plugin &&
-          Array.isArray(plugin.name) &&
-          plugin.name.some((n) => n.toLowerCase() === text.toLowerCase())
-        );
-      });
-
-      if (pluginName) {
-        const plugin = plugins[pluginName];
-        const allNames = Array.isArray(plugin.name)
-          ? plugin.name
-          : [plugin.name];
-
-        let helpText = `🔍 *Command Details*\n\n`;
-        helpText += `◦ Names: ${allNames.map((n) => prefix + n).join(", ")}\n`;
-        helpText += `◦ Category: ${Array.isArray(plugin.category) ? plugin.category.join(", ") : plugin.category || "Uncategorized"}\n`;
-        helpText += `◦ Description: ${plugin.desc || "No description"}\n`;
-        helpText += `◦ Usage: ${prefix}${allNames[0]} ${Object.entries(
-          plugin.options || {},
-        )
-          .map(([k, v]) => `<${v}>`)
-          .join(" ")}\n\n`;
-        helpText += `📝 Options:\n`;
-        Object.entries(plugin.options || {}).forEach(([key, value]) => {
-          helpText += `◦ ${key}: ${value}\n`;
-        });
-        helpText += `\n📋 Requirements:\n`;
-        helpText += `${plugin.isGroup ? "◦ Group\n" : ""}`;
-        helpText += `${plugin.isAdmin ? "◦ Admin Group\n" : ""}`;
-        helpText += `${plugin.isBotAdmin ? "◦ Bot Admin\n" : ""}`;
-        helpText += `${plugin.isPrivate ? "◦ Private Chat\n" : ""}`;
-        helpText += `${plugin.isPremium ? "◦ Premium User\n" : ""}`;
-        helpText += `${plugin.isVIP ? "◦ VIP User\n" : ""}`;
-        helpText += `${plugin.isOwner ? "◦ Owner\n" : ""}`;
-        helpText += `${plugin.isQuoted ? "◦ Quoted Message\n" : ""}`;
-        helpText += `${plugin.limit ? `◦ Limit: ${plugin.limit}\n` : ""}`;
-
-        return m.reply(helpText);
-      } else {
-        return m.reply(`Command "${text}" not found.`);
-      }
-    }
-
-    m.reply(menuText);
+    return m.reply(menuText);
   } catch (error) {
     console.error("Error in menu command:", error);
     m.reply("Terjadi error saat menampilkan menu.");

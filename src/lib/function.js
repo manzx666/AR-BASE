@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import Jimp from "jimp";
-import * as axios from "axios";
+import axios from "axios";
 import chalk from "chalk";
 import * as cheerio from "cheerio";
 import * as mimes from "mime-types";

@@ -3,18 +3,18 @@ export default {
   name: "tiktok",
   category: "downloader",
   description: "Download video dari TikTok",
-  execute: async (m, { client, API: api }) => {
+  execute: async (m, { client, API }) => {
     if (!m.text) throw "Silakan masukkan URL TikTok yang ingin diunduh.";
 
     try {
-      const response = await api.call("/download/tiktok", {
+      const response = await API.call("/download/tiktok", {
         url: m.text,
       });
 
       if (response && response.result) {
         const { video } = response.result;
 
-        await m.sendMessage(video.noWatermark, {
+        await m.reply(video.noWatermark, {
           caption: "Berikut video TikTok yang Anda minta!",
         });
       } else {
