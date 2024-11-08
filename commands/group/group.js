@@ -1,12 +1,12 @@
 export default {
   cmd: ["group"],
   name: "group",
-  tags: "group",
+  category: "group",
   description: "Close and Open Group",
   isGroup: true,
   isAdmin: true,
   isBotAdmin: true,
-  execute: async (m, { client }) => {
+  execute: async (m, { client }) => { 
     let isClose = {
       // Switch Case Like :v
       open: "not_announcement",

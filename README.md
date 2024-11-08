@@ -1,9 +1,5 @@
 ---
 <h1 align="center">AR BASE WHATSAPP BOT</h1>
-
-<p align="center">
-<img src="" alt="AR-BASE Thumbnail">
-</p>
 ---
 
 # AR-BASE
@@ -23,7 +19,7 @@
 - [Scripts](#scripts)
 - [Directory Structure](#directory-structure)
 - [Dependencies](#dependencies)
-- [Author](#author)
+- [TQTO](#TQTO)
 - [License](#license)
 
 ## Configurasi
@@ -41,16 +37,7 @@ cp .env.example .env
 
 2. **Fill in the environment variables:**
    Open the `.env` file you just created and fill in the values in the file.
-Steps:
 
-1. **Copy the `.env.example` file:**
-In the project's root directory, find a file named `.env.example`. Copy this file and rename it `.env`.
-
-```bash
-cp .env.example .env
-```
-
-2. 
 ## Installation
 
 1. Clone the repository:
@@ -148,7 +135,7 @@ Thank you to the following individuals, communities and organizations who have h
 
 ### Developers & Contributors
 - [**Arifzyn XD**](https://github.com/Arifzyn19) - Lead developer and project owner, responsible for the main development and overall direction of the project.
-- [**AmirulDev**](https://github.com/amiruldev20/mywabot-baileys) - Provided inspiration and valuable insights, especially in building bot functionalities using libraries like Baileys.
+- [**AmirulDev**](https://github.com/amiruldev20) - Provided inspiration and valuable insights, especially in building bot functionalities using libraries like Baileys.
 - [**DikaArdnt**](https://github.com/DikaArdnt) - Some parts of the codebase were inspired and adapted from his projects, particularly for bot features and backend structure.
 
 ### LICENSE
