@@ -1,5 +1,6 @@
 # Ignore dir directory
 node_modules/
+tmp/
 
 # Ignore lock files for package managers
 package-lock.json
