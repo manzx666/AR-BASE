@@ -11,9 +11,9 @@ import baileys from "@whiskeysockets/baileys";
 import { format } from "util";
 import { platform } from "os";
 import { exec } from "child_process";
-import fileType from "file-type";
+import { fileTypeFromBuffer }  from "file-type";
 import { fileURLToPath, pathToFileURL } from "url";
-const { fromBuffer } = fileType;
+
 export default new (class Function {
   constructor() {
     this.axios = axios;
@@ -259,7 +259,7 @@ export default new (class Function {
           let mime =
             mimes.lookup(name) ||
             data.headers.get("content-type") ||
-            (await fromBuffer(buffer))?.mime;
+            (await fileTypeFromBuffer(buffer))?.mime;
           resolve({
             data: buffer,
             size: Buffer.byteLength(buffer),
@@ -275,7 +275,7 @@ export default new (class Function {
             data,
             size,
             sizeH: this.formatSize(size),
-            ...((await fromBuffer(data)) || {
+            ...((await fileTypeFromBuffer(data)) || {
               mime: "application/octet-stream",
               ext: ".bin",
             }),
@@ -287,7 +287,7 @@ export default new (class Function {
             data,
             size,
             sizeH: this.formatSize(size),
-            ...((await fromBuffer(data)) || {
+            ...((await fileTypeFromBuffer(data)) || {
               mime: "application/octet-stream",
               ext: ".bin",
             }),
@@ -298,7 +298,7 @@ export default new (class Function {
             data: string,
             size,
             sizeH: this.formatSize(size),
-            ...((await fromBuffer(string)) || {
+            ...((await fileTypeFromBuffer(string)) || {
               mime: "application/octet-stream",
               ext: ".bin",
             }),
@@ -310,7 +310,7 @@ export default new (class Function {
             data,
             size,
             sizeH: this.formatSize(size),
-            ...((await fromBuffer(data)) || {
+            ...((await fileTypeFromBuffer(data)) || {
               mime: "application/octet-stream",
               ext: ".bin",
             }),
@@ -322,7 +322,7 @@ export default new (class Function {
             data: buffer,
             size,
             sizeH: this.formatSize(size),
-            ...((await fromBuffer(buffer)) || {
+            ...((await fileTypeFromBuffer(buffer)) || {
               mime: "application/octet-stream",
               ext: ".bin",
             }),
@@ -461,7 +461,7 @@ export default new (class Function {
   }
   pomf(media) {
     return new Promise(async (resolve, reject) => {
-      let mime = await fromBuffer(media);
+      let mime = await fileTypeFromBuffer(media);
       let form = new FormData();
       form.append("files[]", media, `file-${Date.now()}.${mime.ext}`);
       axios
@@ -478,7 +478,7 @@ export default new (class Function {
   }
   telegra(media) {
     return new Promise(async (resolve, reject) => {
-      let mime = await fromBuffer(media);
+      let mime = await fileTypeFromBuffer(media);
       let form = new FormData();
       form.append("file", media, `file-${Date.now()}.${mime.ext}`);
       axios
@@ -495,7 +495,7 @@ export default new (class Function {
   }
   hari(media) {
     return new Promise(async (resolve, reject) => {
-      let mime = await fromBuffer(media);
+      let mime = await fileTypeFromBuffer(media);
       let form = new FormData();
       form.append("file", media, `file-${Date.now()}.${mime.ext}`);
       axios
@@ -512,7 +512,7 @@ export default new (class Function {
   }
   tmp(media) {
     return new Promise(async (resolve, reject) => {
-      let mime = await fromBuffer(media);
+      let mime = await fileTypeFromBuffer(media);
       let form = new FormData();
       form.append("file", media, `file-${Date.now()}.${mime.ext}`);
       axios
@@ -536,7 +536,7 @@ export default new (class Function {
       .get("https://freeimage.host/")
       .catch(() => null);
     const token = html.match(/PF.obj.config.auth_token = "(.+?)";/)[1];
-    let mime = await fromBuffer(buffer);
+    let mime = await fileTypeFromBuffer(buffer);
     let form = new FormData();
     form.append("source", buffer, `file-${Date.now()}.${mime.ext}`);
     const options = {

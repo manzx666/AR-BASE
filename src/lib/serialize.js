@@ -1,5 +1,6 @@
 import config from "../configs/config.js";
 import Function from "./function.js";
+import Helper from "../configs/helper.js";
 import { writeExif } from "./sticker.js";
 import fs from "fs";
 import path from "path";
@@ -8,9 +9,9 @@ import chalk from "chalk";
 import Crypto from "crypto";
 import baileys from "@whiskeysockets/baileys";
 import { parsePhoneNumber } from "libphonenumber-js";
-import fileType from "file-type";
+import { fileTypeFromBuffer } from "file-type";
 import { fileURLToPath } from "url";
-const { fileTypeFromBuffer } = fileType;
+
 const {
   generateWAMessage,
   generateWAMessageFromContent,
@@ -19,9 +20,13 @@ const {
   jidNormalizedUser,
   WA_DEFAULT_EPHEMERAL,
 } = baileys;
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 function toSHA256(str) {
   return Crypto.createHash("sha256").update(str).digest("hex");
 }
+
 function Client({ client: conn, store }) {
   delete store.groupMetadata;
   for (let v in store) {
@@ -396,7 +401,7 @@ function Client({ client: conn, store }) {
         if (data && saveToFile && !filename)
           (filename = path.join(
             __dirname,
-            "../../storage/tmp/" + new Date() * 1 + "." + type.ext,
+            "../../temp/" + new Date() * 1 + "." + type.ext,
           )),
             await fs.promises.writeFile(filename, data);
         return {
@@ -813,7 +818,7 @@ ${list
     let [command, number, title] = item;
     return `*${number}.* ${title}`.trim();
   })
-  .join("\n\n")}`
+  .join("\n")}`
 }
 `.trim();
         let metadata = toSHA256(caption);
@@ -1367,7 +1372,7 @@ async function Serialize(conn, msg) {
     }
   }
   m.react = (emoji) =>
-    conn.sendMessage(m.from, {
+    conn.sendMessage(m.chat, {
       react: {
         text: String(emoji),
         key: m.key,
