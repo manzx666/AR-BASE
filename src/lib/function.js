@@ -11,7 +11,7 @@ import baileys from "@whiskeysockets/baileys";
 import { format } from "util";
 import { platform } from "os";
 import { exec } from "child_process";
-import { fileTypeFromBuffer }  from "file-type";
+import { fileTypeFromBuffer } from "file-type";
 import { fileURLToPath, pathToFileURL } from "url";
 
 export default new (class Function {
@@ -23,6 +23,7 @@ export default new (class Function {
     this.baileys = baileys;
     this.FormData = FormData;
     this.upload = {
+      arcdn: this.arcdn.bind(this),
       telegra: this.telegra.bind(this),
       pomf: this.pomf.bind(this),
       hari: this.hari.bind(this),
@@ -458,6 +459,23 @@ export default new (class Function {
     if (wakt < "05:00") ucapanWaktu = "Selamat Subuh";
     if (wakt < "03:00") ucapanWaktu = "Selamat Tengah Malam";
     return ucapanWaktu;
+  }
+  arcdn(media) {
+    return new Promise(async (resolve, reject) => {
+      let mime = await fileTypeFromBuffer(media);
+      let form = new FormData();
+      form.append("file", media, `file-${Date.now()}.${mime.ext}`);
+      axios
+        .post("https://cdn.arifzyn.tech/api/upload", form, {
+          headers: {
+            "User-Agent":
+              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0",
+            ...form.getHeaders(),
+          },
+        })
+        .then(({ data }) => resolve(data))
+        .catch(reject);
+    });
   }
   pomf(media) {
     return new Promise(async (resolve, reject) => {

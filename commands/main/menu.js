@@ -43,7 +43,7 @@ cmd.execute = async (
       categories.forEach((category) => {
         // Skip uncategorized commands
         if (category.toLowerCase() === "uncategorized") return;
-        
+
         if (!commandsByCategory[category]) {
           commandsByCategory[category] = new Map();
         }
@@ -93,7 +93,7 @@ cmd.execute = async (
         let helpText = `🔍 *Command Details*\n\n`;
         helpText += `◦ Names: ${allNames.map((n) => prefix + n).join(", ")}\n`;
         helpText += `◦ Category: ${categories.join(", ") || "Other"}\n`;
-        helpText += `◦ Description: ${plugin.desc || "No description"}\n`;
+        helpText += `◦ Description: ${plugin.description || "No description"}\n`;
         helpText += `◦ Usage: ${prefix}${allNames[0]} ${Object.entries(
           plugin.options || {},
         )
@@ -121,7 +121,7 @@ cmd.execute = async (
         return m.reply(`Command "${text}" not found.`);
       }
     }
- 
+
     // Display regular menu if no specific command is requested
     const sortedCategories = Object.entries(commandsByCategory).sort(
       ([a], [b]) => a.localeCompare(b),
@@ -157,7 +157,35 @@ cmd.execute = async (
     menuText += `Ⓥ = VIP\n\n`;
     menuText += `Ketik ${prefix}help <command> untuk melihat detail command`;
 
-    return m.reply(menuText);
+    const url = "https://akanebot.xyz";
+
+    const message = {
+      extendedTextMessage: {
+        text: menuText,
+        contextInfo: {
+          externalAdReply: {
+            title: "Bot WhatsApp Gratis | Akane Bot",
+            body: "Akane Bot menyediakan fitur fitur yang dapat anda gunakan secara gratis.",
+            mediaType: 1,
+            thumbnailUrl: global.db.settings.logo,
+            sourceUrl: url,
+            renderLargerThumbnail: true,
+          },
+        },
+      },
+    };
+
+    const waMessage = await Func.baileys.generateWAMessageFromContent(
+      m.chat,
+      message,
+      {
+        quoted: m,
+      },
+    );
+
+    return await client.relayMessage(m.chat, waMessage.message, {
+      messageId: waMessage.key.id,
+    });
   } catch (error) {
     console.error("Error in menu command:", error);
     m.reply("Terjadi error saat menampilkan menu.");

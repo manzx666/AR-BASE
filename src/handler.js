@@ -17,12 +17,6 @@ import Func from "./lib/function.js";
 const { delay, jidNormalizedUser } = baileys;
 const API = new ArifzynAPI();
 
-/**
- * Check user permissions and status
- * @param {Object} m Message object
- * @param {Object} db Database object
- * @returns {Object} User permissions
- */
 const checkUserPermissions = (m, db) => {
   const user = db.users[m.sender];
   return {
@@ -35,12 +29,6 @@ const checkUserPermissions = (m, db) => {
   };
 };
 
-/**
- * Check group settings
- * @param {Object} m Message object
- * @param {Object} db Database object
- * @returns {Object} Group settings
- */
 const checkGroupSettings = (m, db) => {
   if (!m.isGroup) return {};
   const group = db.groups[m.chat];
@@ -54,11 +42,6 @@ const checkGroupSettings = (m, db) => {
   };
 };
 
-/**
- * Log message details with color
- * @param {Object} client Bot client
- * @param {Object} m Message object
- */
 const logMessage = async (client, m) => {
   if (!m.message) return;
 
@@ -81,14 +64,6 @@ const logMessage = async (client, m) => {
   );
 };
 
-/**
- * Check plugin execution conditions
- * @param {Object} plugin Plugin object
- * @param {Object} m Message object
- * @param {Object} groupSettings Group settings
- * @param {Object} userPerms User permissions
- * @returns {boolean|string} False if can execute, error message if cannot
- */
 const checkPluginConditions = (plugin, m, groupSettings, userPerms) => {
   if (plugin.isOwner && !m.isOwner) return "owner";
   if (plugin.isPremium && !userPerms.isPrems) return "premium";
@@ -103,6 +78,37 @@ const checkPluginConditions = (plugin, m, groupSettings, userPerms) => {
     if (plugin.isNsfw && !groupSettings.isNsfw) return "NSFW tidak aktif";
     if (plugin.isGame && !groupSettings.isGame)
       return "Game tidak aktif di chat ini";
+  }
+
+  return false;
+};
+
+/**
+ * Check command usage pattern
+ * @param {Object} plugin Plugin object
+ * @param {Object} m Message object
+ * @returns {string|false} Usage message if pattern doesn't match, false if matches
+ */
+const checkUsagePattern = (plugin, m) => {
+  if (!plugin.usages || !Array.isArray(plugin.usages)) return false;
+
+  const { args, command, prefix } = m;
+
+  // Find matching usage pattern based on args length
+  const matchingPattern = plugin.usages.find((usage) => {
+    const pattern = usage[0].split(" ");
+    const cmdName = pattern[0];
+    const paramCount = pattern.slice(1).length;
+    return cmdName === command && paramCount === args.length;
+  });
+
+  if (!matchingPattern) {
+    // Generate usage message
+    const usageList = plugin.usages
+      .map(([usage, desc]) => `◦ ${prefix}${usage}\n  ${desc}`)
+      .join("\n");
+
+    return `❌ Invalid usage pattern\n\n*Usage Examples:*\n${usageList}`;
   }
 
   return false;
@@ -164,14 +170,22 @@ const handleMessagesUpsert = async (client, store, m, messages) => {
           m.plugin = name;
           m.isCommand = true;
 
+          // Check conditions and usage pattern
           const conditionError = checkPluginConditions(
             plugin,
             m,
             groupSettings,
             userPerms,
           );
+
           if (conditionError) {
             m.reply(config.msg[conditionError] || conditionError);
+            continue;
+          }
+
+          const usageError = checkUsagePattern(plugin, m);
+          if (usageError) {
+            m.reply(usageError);
             continue;
           }
 
