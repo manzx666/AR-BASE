@@ -2,20 +2,7 @@ const cmd = {
   cmd: ["menu", "help", "allmenu"],
   name: ["menu"],
   category: ["main"],
-  desc: "Menampilkan menu bot",
-  isGroup: false,
-  isPrivate: false,
-  isAdmin: false,
-  isBotAdmin: false,
-  isOwner: false,
-  isNsfw: false,
-  isPremium: false,
-  isVIP: false,
-  isQuoted: false,
-  disable: false,
-  limit: 0,
-  exp: 5,
-  timeout: 0,
+  description: "Menampilkan menu bot",
 };
 
 cmd.execute = async (
@@ -36,20 +23,27 @@ cmd.execute = async (
   try {
     const commandsByCategory = {};
 
+    // Helper function to ensure array format
+    const ensureArray = (value) => {
+      if (!value) return [];
+      return Array.isArray(value) ? value : [value];
+    };
+
     Object.keys(plugins).forEach((name) => {
       const plugin = plugins[name];
       if (!plugin || plugin.disabled) return;
 
-      const commandNames = Array.isArray(plugin.name)
-        ? plugin.name
-        : [plugin.name];
+      const commandNames = ensureArray(plugin.name);
       if (!commandNames.length) return;
 
-      const categories = Array.isArray(plugin.category)
-        ? plugin.category
-        : [plugin.category || "Uncategorized"];
+      // Fix for typo in category name (cetegory -> category)
+      const category = plugin.category || plugin.cetegory || "other";
+      const categories = ensureArray(category);
 
       categories.forEach((category) => {
+        // Skip uncategorized commands
+        if (category.toLowerCase() === "uncategorized") return;
+        
         if (!commandsByCategory[category]) {
           commandsByCategory[category] = new Map();
         }
@@ -86,22 +80,19 @@ cmd.execute = async (
     if (text) {
       const plugin = Object.values(plugins).find((plugin) => {
         if (plugin && plugin.name) {
-          const names = Array.isArray(plugin.name)
-            ? plugin.name
-            : [plugin.name];
+          const names = ensureArray(plugin.name);
           return names.some((n) => n && n.toLowerCase() === text.toLowerCase());
         }
         return false;
       });
 
       if (plugin) {
-        const allNames = Array.isArray(plugin.name)
-          ? plugin.name
-          : [plugin.name];
+        const allNames = ensureArray(plugin.name);
+        const categories = ensureArray(plugin.category || plugin.cetegory);
 
         let helpText = `🔍 *Command Details*\n\n`;
         helpText += `◦ Names: ${allNames.map((n) => prefix + n).join(", ")}\n`;
-        helpText += `◦ Category: ${Array.isArray(plugin.category) ? plugin.category.join(", ") : plugin.category || "Uncategorized"}\n`;
+        helpText += `◦ Category: ${categories.join(", ") || "Other"}\n`;
         helpText += `◦ Description: ${plugin.desc || "No description"}\n`;
         helpText += `◦ Usage: ${prefix}${allNames[0]} ${Object.entries(
           plugin.options || {},
@@ -130,7 +121,7 @@ cmd.execute = async (
         return m.reply(`Command "${text}" not found.`);
       }
     }
-
+ 
     // Display regular menu if no specific command is requested
     const sortedCategories = Object.entries(commandsByCategory).sort(
       ([a], [b]) => a.localeCompare(b),
@@ -147,8 +138,14 @@ cmd.execute = async (
             if (cmd.isPremium) tags.push("Ⓟ");
             if (cmd.isVIP) tags.push("Ⓥ");
 
-            const allNames = cmd.names.map((name) => prefix + name).join(", ");
-            menuText += `◦ ${allNames} ${tags.join("")}\n`;
+            // Display each command name on a new line if it's an array
+            if (cmd.names.length > 1) {
+              cmd.names.forEach((name) => {
+                menuText += `◦ ${prefix}${name} ${tags.join("")}\n`;
+              });
+            } else {
+              menuText += `◦ ${prefix}${cmd.names[0]} ${tags.join("")}\n`;
+            }
           });
         menuText += "\n";
       }

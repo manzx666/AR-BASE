@@ -1,7 +1,7 @@
 export default {
   cmd: ['ytmp3', 'ytmp4'],
   name: ['ytmp3', 'ytmp4'],
-  cetegory: 'download',
+  cetegory: 'downloader',
   description: 'Download video/audio dari YouTube',
   execute: async (m, { client, API, Func }) => {
   	if (!m.text) return m.reply(Func.example(m.prefix, m.command, "https://youtube.com/watch?v=KXQehM6GzYI"))
@@ -10,7 +10,7 @@ export default {
       return m.reply('[!] Silakan masukkan URL video/audio YouTube.');
     }
     
-    // await m.react('🕒') 
+    await m.react('🕒') 
     
     try {
       const isAudio = m.command === 'ytmp3';

@@ -3,7 +3,7 @@ import yts from 'yt-search';
 export default {
   cmd: ['play'],
   name: 'play',
-  category: 'download',
+  category: 'downloader',
   description: 'Play a video or search and play from YouTube',
   cooldown: 5000,
   execute: async (m, { client, Func }) => {
