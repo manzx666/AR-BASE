@@ -95,7 +95,7 @@ const handler = async (m, { conn }) => {
 export default {
   cmd: ["removebg", "remove_bg"],
   name: "removebg",
-  category: ["tools", "image"],
+  category: ["tools"],
   description: "Menghapus background dari gambar",
   execute: handler,
 };

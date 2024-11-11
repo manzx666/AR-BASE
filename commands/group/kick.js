@@ -6,7 +6,7 @@ export default {
   isGroup: true,
   isAdmin: true,
   isBotAdmin: true,
-  run: async (m, { client }) => {
+  execute: async (m, { client, config }) => {
     try {
       let who = m.quoted
         ? m.quoted.sender
@@ -21,7 +21,7 @@ export default {
         return m.reply(`Target tidak berada dalam Grup !`);
       if (
         somematch(
-          [client.user.jid, ...global.owner.map((v) => v + "@s.whatsapp.net")],
+          [client.user.jid, ...config.owner.map((v) => v + "@s.whatsapp.net")],
           who,
         )
       )

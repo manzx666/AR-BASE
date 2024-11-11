@@ -1,131 +1,228 @@
-import fs from "fs";
-import Crypto from "crypto";
-import * as ff from "fluent-ffmpeg";
-import webp from "node-webpmux";
-import path from "path";
-const temp = process.platform === "win32" ? process.env.TEMP : "/temp";
+import Func from './function.js';
+
+import fs from 'fs';
+import path from 'path';
+import axios from 'axios';
+import Crypto from 'crypto';
+import ff from 'fluent-ffmpeg';
+import webp from 'node-webpmux';
+import { fileTypeFromBuffer } from 'file-type';
+import FormData from 'form-data';
+
 async function imageToWebp(media) {
-  const tmpFileIn = path.join(
-    temp,
-    `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.${media?.ext || "png"}`,
-  );
   const tmpFileOut = path.join(
-    temp,
-    `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`,
+    process.cwd(),
+    'temp',
+    await Func.getRandom('webp')
   );
-  fs.writeFileSync(tmpFileIn, media.data);
-  try {
-    await new Promise((resolve, reject) => {
-      ff(tmpFileIn)
-        .on("error", reject)
-        .on("end", () => resolve(true))
-        //.addOutputOptions([`-vcodec`,`libwebp`,`-vf`,`scale=512:512:force_original_aspect_ratio=increase,fps=15,crop=512:512`]).toFormat('webp').save(tmpFileOut)
-        .addOutputOptions([
-          "-vcodec",
-          "libwebp",
-          "-vf",
-          "scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=000000 [p]; [b][p] paletteuse",
-        ])
-        .toFormat("webp")
-        .saveToFile(tmpFileOut);
-    });
-    fs.promises.unlink(tmpFileIn);
-    const buff = fs.readFileSync(tmpFileOut);
-    fs.promises.unlink(tmpFileOut);
-    return buff;
-  } catch (e) {
-    fs.existsSync(tmpFileIn) ? fs.promises.unlink(tmpFileIn) : "";
-    fs.existsSync(tmpFileOut) ? fs.promises.unlink(tmpFileOut) : "";
-    throw e;
-  }
+  const tmpFileIn = path.join(
+    process.cwd(),
+    'temp',
+    await Func.getRandom('jpg')
+  );
+
+  fs.writeFileSync(tmpFileIn, media);
+
+  await new Promise((resolve, reject) => {
+    ff(tmpFileIn)
+      .on('error', reject)
+      .on('end', () => resolve(true))
+      .addOutputOptions([
+        '-vcodec',
+        'libwebp',
+        '-vf',
+        "scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse",
+      ])
+      .toFormat('webp')
+      .save(tmpFileOut);
+  });
+
+  const buff = fs.readFileSync(tmpFileOut);
+  fs.promises.unlink(tmpFileOut);
+  fs.promises.unlink(tmpFileIn);
+  return buff;
 }
+
 async function videoToWebp(media) {
-  const tmpFileIn = path.join(
-    temp,
-    `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.${media?.ext || "mp4"}`,
-  );
   const tmpFileOut = path.join(
-    temp,
-    `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`,
+    process.cwd(),
+    'temp',
+    await Func.getRandom('webp')
   );
-  fs.writeFileSync(tmpFileIn, media.data);
-  try {
-    await new Promise((resolve, reject) => {
-      ff(tmpFileIn)
-        .on("error", reject)
-        .on("end", () => resolve(true))
-        //.addOutputOptions([`-vcodec`,`libwebp`,`-vf`,`scale=512:512:force_original_aspect_ratio=increase,fps=15,crop=512:512`]).toFormat('webp').save(tmpFileOut)
-        .addOutputOptions([
-          "-vcodec",
-          "libwebp",
-          "-vf",
-          // eslint-disable-next-line no-useless-escape
-          "scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=000000 [p]; [b][p] paletteuse",
-          "-loop",
-          "0",
-          "-ss",
-          "00:00:00",
-          "-t",
-          "00:00:05",
-          "-preset",
-          "default",
-          "-an",
-          "-vsync",
-          "0",
-        ])
-        .toFormat("webp")
-        .saveToFile(tmpFileOut);
-    });
-    fs.promises.unlink(tmpFileIn);
-    const buff = fs.readFileSync(tmpFileOut);
-    fs.promises.unlink(tmpFileOut);
-    return buff;
-  } catch (e) {
-    fs.existsSync(tmpFileIn) ? fs.promises.unlink(tmpFileIn) : "";
-    fs.existsSync(tmpFileOut) ? fs.promises.unlink(tmpFileOut) : "";
-    throw e;
-  }
+  const tmpFileIn = path.join(
+    process.cwd(),
+    'temp',
+    await Func.getRandom('mp4')
+  );
+
+  fs.writeFileSync(tmpFileIn, media);
+
+  await new Promise((resolve, reject) => {
+    ff(tmpFileIn)
+      .on('error', reject)
+      .on('end', () => resolve(true))
+      .addOutputOptions([
+        '-vcodec',
+        'libwebp',
+        '-vf',
+        "scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse",
+        '-loop',
+        '0',
+        '-ss',
+        '00:00:00.0',
+        '-t',
+        '00:00:05.0',
+        '-preset',
+        'default',
+        '-an',
+        '-vsync',
+        '0',
+      ])
+      .toFormat('webp')
+      .save(tmpFileOut);
+  });
+
+  const buff = fs.readFileSync(tmpFileOut);
+  fs.promises.unlink(tmpFileOut);
+  fs.promises.unlink(tmpFileIn);
+  return buff;
 }
+
 async function writeExif(media, metadata) {
   let wMedia = /webp/.test(media.mimetype)
     ? media.data
     : /image/.test(media.mimetype)
-      ? await imageToWebp(media)
+      ? await imageToWebp(media.data)
       : /video/.test(media.mimetype)
-        ? await videoToWebp(media)
-        : "";
-  if (metadata && Object?.keys(metadata).length !== 0) {
+        ? await videoToWebp(media.data)
+        : '';
+  const tmpFileOut = path.join(
+    process.cwd(),
+    'temp',
+    await Func.getRandom('webp')
+  );
+  const tmpFileIn = path.join(
+    process.cwd(),
+    'temp',
+    await Func.getRandom('webp', '15')
+  );
+
+  fs.writeFileSync(tmpFileIn, wMedia);
+
+  if (Object.keys(metadata).length != 0) {
     const img = new webp.Image();
+    const opt = {
+      packId: metadata?.packId ? metadata.packId : 'https://nhentai.net',
+      packName: metadata?.packName ? metadata.packName : 'Stiker dibuat oleh :',
+      packPublish: metadata?.packPublish ? metadata.packPublish : 'Arifzyn',
+      packEmail: metadata?.packEmail
+        ? metadata.packEmail
+        : 'arifzyn906@gmail.com',
+      packWebsite: metadata?.packWebsite
+        ? metadata.packWebsite
+        : 'https://nhentai.net',
+      androidApp: metadata?.androidApp
+        ? metadata.androidApp
+        : 'https://play.google.com/store/apps/details?id=com.bitsmedia.android.muslimpro',
+      iOSApp: metadata?.iOSApp
+        ? metadata.iOSApp
+        : 'https://apps.apple.com/id/app/muslim-pro-al-quran-adzan/id388389451?|=id',
+      emojis: metadata?.emojis ? metadata.emojis : [],
+      isAvatar: metadata?.isAvatar ? metadata.isAvatar : 0,
+    };
     const json = {
-      "sticker-pack-id": metadata?.packId || `hisoka-${Date.now()}`,
-      "sticker-pack-name": metadata?.packName || "",
-      "sticker-pack-publisher": metadata?.packPublish || "",
-      "android-app-store-link":
-        metadata?.androidApp ||
-        "https://play.google.com/store/apps/details?id=com.bitsmedia.android.muslimpro",
-      "ios-app-store-link":
-        metadata?.iOSApp ||
-        "https://apps.apple.com/id/app/muslim-pro-al-quran-adzan/id388389451?|=id",
-      emojis: metadata?.emojis || ["😋", "😎", "🤣", "😂", "😁"],
-      "is-avatar-sticker": metadata?.isAvatar || 0,
+      'sticker-pack-id': opt.packId,
+      'sticker-pack-name': opt.packName,
+      'sticker-pack-publisher': opt.packPublish,
+      'sticker-pack-publisher-email': opt.packEmail,
+      'sticker-pack-publisher-website': opt.packWebsite,
+      'android-app-store-link': opt.androidApp,
+      'ios-app-store-link': opt.iOSApp,
+      emojis: opt.emojis,
+      'is-avatar-sticker': opt.isAvatar,
     };
     const exifAttr = Buffer.from([
       0x49, 0x49, 0x2a, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01, 0x00, 0x41, 0x57,
       0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0x00, 0x00, 0x00,
     ]);
-    const jsonBuff = Buffer.from(JSON.stringify(json), "utf-8");
+    const jsonBuff = Buffer.from(JSON.stringify(json), 'utf-8');
     const exif = Buffer.concat([exifAttr, jsonBuff]);
+
     exif.writeUIntLE(jsonBuff.length, 14, 4);
-    await img.load(wMedia);
+    await img.load(tmpFileIn);
+    fs.promises.unlink(tmpFileIn);
     img.exif = exif;
-    return await img.save(null);
+    await img.save(tmpFileOut);
+
+    return tmpFileOut;
   }
 }
-export { imageToWebp };
-export { videoToWebp };
-export { writeExif };
-export default {
-  imageToWebp,
-  videoToWebp,
-  writeExif,
-};
+
+async function webp2mp4File(source) {
+  return new Promise((resolve, reject) => {
+    const form = new FormData();
+    let isUrl = typeof source === 'string' && /https?:\/\//.test(source);
+
+    if (isUrl) {
+      form.append('new-image-url', source);
+      form.append('new-image', ''); // No file when the source is a URL
+    } else {
+      // Assuming `source` is a Buffer, Readable stream, or a File object
+      form.append('new-image', source, `${Date.now()}-image.webp`);
+      form.append('new-image-url', '');
+    }
+
+    Func.axios({
+      method: 'post',
+      url: 'https://s6.ezgif.com/webp-to-mp4',
+      data: form,
+      headers: {
+        'Content-Type': `multipart/form-data; boundary=${form._boundary}`,
+      },
+    })
+      .then(({ data }) => {
+        const bodyFormThen = new FormData();
+        const $ = Func.cheerio.load(data);
+        const file = $("input[name='file']").attr('value');
+
+        bodyFormThen.append('file', file);
+        bodyFormThen.append('convert', 'Convert WebP to MP4!');
+
+        Func.axios({
+          method: 'post',
+          url: 'https://ezgif.com/webp-to-mp4/' + file,
+          data: bodyFormThen,
+          headers: {
+            'Content-Type': `multipart/form-data; boundary=${bodyFormThen._boundary}`,
+          },
+        })
+          .then(({ data }) => {
+            const $ = Func.cheerio.load(data);
+            const result =
+              'https:' +
+              $('div#output > p.outfile > video > source').attr('src');
+
+            resolve(result);
+          })
+          .catch(reject);
+      })
+      .catch(reject);
+  });
+}
+
+async function uploadFile(buffer) {
+  const form = new Func.FormData();
+  const { ext } = await fileTypeFromBuffer(buffer);
+
+  form.append('file', buffer, await Func.getRandom(ext));
+  let a = await axios.post('https://filezone.my.id/upload', form, {
+    headers: {
+      accept: '*/*',
+      'accept-language': 'en-US,en;q=0.9,id;q=0.8',
+      'content-type': `multipart/form-data; boundary=${form._boundary}`,
+    },
+  });
+  return a.data.result;
+}
+
+export { uploadFile, imageToWebp, videoToWebp, writeExif, webp2mp4File };

@@ -209,6 +209,7 @@ const handleMessagesUpsert = async (client, store, m, messages) => {
               quoted,
               plugins,
               store,
+              config,
               API,
               Func,
               userPerms,
