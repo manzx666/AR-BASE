@@ -1,13 +1,12 @@
 export default {
-  command: ['toimg', 'toimage'],
-  description: 'Convert sticker to image',
+  cmd: ['toimg', 'toimage'],
   name: 'toimage',
-  tags: 'convert',
-
-  run: async (m) => {
+  category: 'convert',
+  description: 'Convert sticker to image',
+  execute: async (m) => {
     const quoted = m.isQuoted ? m.quoted : m;
 
-    let { webp2mp4File } = await import('../../system/lib/sticker.js');
+    let { webp2mp4File } = await import('../../src/lib/sticker.js');
     if (!/webp/i.test(quoted.mime))
       return m.reply(`Reply Sticker with command ${m.prefix + m.command}`);
     if (quoted.isAnimated) {
