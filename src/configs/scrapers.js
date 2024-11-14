@@ -1,98 +1,164 @@
-/*
- * Terimakasih Sudah Menggunakan Source Code Saya
- * Author : Arifzyn.
- * Github : https://github.com/Arifzyn19
- */
-
-import { readdirSync, statSync } from "fs";
+import config from "./config.js";
+import fs, { existsSync, watch } from "fs";
 import { join, resolve } from "path";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
+import * as os from "os";
+import syntaxerror from "syntax-error";
+import { createRequire } from "module";
+import path from "path";
+import Helper from "./helper.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = Helper.__dirname(import.meta);
+const rootDirectory = Helper.__dirname(join(__dirname, "../"));
+const scraperFolder = Helper.__dirname(
+  join(__dirname, "../" + config.scrapers),
+);
+const scraperFilter = (filename) => /\.(js|mjs|cjs)$/.test(filename);
+const require = createRequire(import.meta.url);
 
-class ScraperLoader {
-  constructor() {
-    this.scraper = new Map();
-    this.scraperDir = resolve(__dirname, "../scrapers");
-    this.load();
+async function importFile(module) {
+  module = Helper.__filename(module);
+
+  const ext = path.extname(module);
+  let result;
+
+  if (ext === ".cjs") {
+    const module_ = require(module);
+    result = module_ && module_.default ? module_.default : module_;
+  } else {
+    const module_ = await import(`${module}?id=${Date.now()}`);
+    result = module_ && module_.default ? module_.default : module_;
   }
 
-  /**
-   * Load all scraper modules
-   */
-  load() {
-    try {
-      this._loadDirectory(this.scraperDir);
-      console.log(`✅ Loaded ${this.scraper.size} scrapers successfully`);
-    } catch (error) {
-      console.error("❌ Error loading scrapers:", error);
-    }
-  }
-
-  /**
-   * Load scraper modules from directory recursively
-   * @param {string} dir Directory path
-   * @param {string} namespace Namespace for nested modules
-   */
-  async _loadDirectory(dir, namespace = "") {
-    const files = readdirSync(dir);
-
-    for (const file of files) {
-      const fullPath = join(dir, file);
-      const stat = statSync(fullPath);
-
-      if (stat.isDirectory()) {
-        // Recursive loading for subdirectories
-        await this._loadDirectory(fullPath, `${namespace}${file}.`);
-        continue;
-      }
-
-      if (!file.endsWith(".js")) continue;
-
-      try {
-        const module = await import(`file://${fullPath}`);
-        const scraperName = file.replace(/\.js$/, "");
-        const key = namespace + scraperName;
-
-        if (!module.default?.scrape) {
-          console.warn(`⚠️ Skipping ${key}: No scrape method found`);
-          continue;
-        }
-
-        this.scraper.set(key, module.default);
-        console.log(`📥 Loaded scraper: ${key}`);
-      } catch (error) {
-        console.error(`❌ Failed to load ${file}:`, error);
-      }
-    }
-  }
-
-  /**
-   * Get scraper by name
-   * @param {string} name Scraper name
-   * @returns {object|null} Scraper module or null if not found
-   */
-  call(name) {
-    return this.scraper.get(name) || null;
-  }
-
-  /**
-   * Get all scraper names
-   * @returns {string[]} Array of scraper names
-   */
-  getScraperNames() {
-    return Array.from(this.scraper.keys());
-  }
-
-  /**
-   * Reload all scrapers
-   */
-  reload() {
-    this.scraper.clear();
-    this.load();
-  }
+  return result;
 }
 
-export default new ScraperLoader();
+let watcher = {};
+let scrapers = {};
+let scraperFolders = [];
+/**
+ * Load files from scraper folder as scrapers
+ */
+async function loadScraperFiles(
+  scraperFolder,
+  scraperFilter,
+  opts = { recursiveRead: false },
+) {
+  const folder = resolve(scraperFolder);
+  if (folder in watcher) return;
+  scraperFolders.push(folder);
+  const paths = await fs.promises.readdir(scraperFolder);
+  await Promise.all(
+    paths.map(async (path) => {
+      const resolved = join(folder, path);
+      const dirname = resolved;
+      const formattedFilename = formatFilename(resolved);
+      try {
+        const stats = await fs.promises.lstat(dirname);
+        if (!stats.isFile()) {
+          if (opts.recursiveRead)
+            await loadScraperFiles(dirname, scraperFilter, opts);
+          return;
+        }
+        const filename = resolved;
+        const isValidFile = scraperFilter(filename);
+        if (!isValidFile) return;
+        const module = await importFile(filename);
+        if (module) scrapers[formattedFilename] = module;
+      } catch (e) {
+        opts.logger?.error(e, `error while requiring ${formattedFilename}`);
+        delete scrapers[formattedFilename];
+      }
+    }),
+  );
+  const watching = watch(
+    folder,
+    reload.bind(null, {
+      logger: opts.logger,
+      scraperFolder,
+      scraperFilter,
+    }),
+  );
+  watching.on("close", () => deleteScraperFolder(folder, true));
+  watcher[folder] = watching;
+  return (scrapers = sortedScrapers(scrapers));
+}
+/**
+ * Delete and stop watching the folder
+ */
+function deleteScraperFolder(folder, isAlreadyClosed = false) {
+  const resolved = resolve(folder);
+  if (!(resolved in watcher)) return;
+  if (!isAlreadyClosed) watcher[resolved].close();
+  delete watcher[resolved];
+  scraperFolders.splice(scraperFolders.indexOf(resolved), 1);
+}
+/**
+ * Reload file to load latest changes
+ */
+async function reload(
+  { logger, scraperFolder = scraperFolder, scraperFilter = scraperFilter },
+  _ev,
+  filename,
+) {
+  if (scraperFilter(filename)) {
+    const file = join(scraperFolder, filename);
+    const formattedFilename = formatFilename(file);
+    if (formattedFilename in scrapers) {
+      if (existsSync(file))
+        logger?.info(`updated scraper - '${formattedFilename}'`);
+      else {
+        logger?.warn(`deleted scraper - '${formattedFilename}'`);
+        return delete scrapers[formattedFilename];
+      }
+    } else logger?.info(`new scraper - '${formattedFilename}'`);
+    const src = await fs.promises.readFile(file);
+    let err = syntaxerror(src, filename, {
+      sourceType: "module",
+      allowAwaitOutsideFunction: true,
+    });
+    if (err)
+      logger?.error(err, `syntax error while loading '${formattedFilename}'`);
+    else
+      try {
+        const module = await importFile(file);
+        if (module) scrapers[formattedFilename] = module;
+      } catch (e) {
+        logger?.error(e, `error require scraper '${formattedFilename}'`);
+        delete scrapers[formattedFilename];
+      } finally {
+        scrapers = sortedScrapers(scrapers);
+      }
+  }
+}
+/**
+ * Format filename to a relative path
+ */
+function formatFilename(filename) {
+  return path.basename(filename, path.extname(filename)); // Mengembalikan hanya nama file tanpa path dan ekstensi
+}
+/**
+ * Sort scrapers by their keys
+ */
+function sortedScrapers(scrapers) {
+  return Object.fromEntries(
+    Object.entries(scrapers).sort(([a], [b]) => a.localeCompare(b)),
+  );
+}
+export { scraperFolder };
+export { scraperFilter };
+export { scrapers };
+export { watcher };
+export { scraperFolders };
+export { loadScraperFiles };
+export { deleteScraperFolder };
+export { reload };
+export default {
+  scraperFolder,
+  scraperFilter,
+  scrapers,
+  watcher,
+  scraperFolders,
+  loadScraperFiles,
+  deleteScraperFolder,
+  reload,
+};

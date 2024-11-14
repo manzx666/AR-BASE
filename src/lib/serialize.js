@@ -297,7 +297,7 @@ function Client({ client: conn, store }) {
         let caption = isSmlcap
           ? conn.smlcap(text, smlcap.except ? smlcap.except : false)
           : text;
-        let type = await conn.getFile(path, false);
+        let type = await conn.getFile(path, true);
         let { res, data: file, filename: pathFile } = type;
         if ((res && res.status !== 200) || file.length <= 65536) {
           try {

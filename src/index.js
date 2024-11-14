@@ -2,12 +2,14 @@ import config from "./configs/config.js";
 import baileys from "@whiskeysockets/baileys";
 import { createClient, getWAVersion } from "./lib/client.js";
 import fs from "fs";
+
 import {
   plugins,
   loadPluginFiles,
   pluginFolder,
   pluginFilter,
 } from "./configs/plugins.js";
+import { loadScraperFiles, scraperFolder, scraperFilter } from "./configs/scrapers.js";
 import groupEvents from "./events/groups.js";
 import messageHandler from "./events/messages.js";
 import connectionUpdate from "./events/connection.js";
@@ -31,7 +33,7 @@ async function WAStart() {
 
   const database = new Database();
   const content = await database.read();
-
+  
   if (!content || Object.keys(content).length === 0) {
     global.db = {
       users: {},
@@ -55,12 +57,23 @@ async function WAStart() {
     console.log(`⚠︎ Kode WhatsApp kamu: ${code}`);
   }
 
-  await loadPluginFiles(pluginFolder, pluginFilter, {
-    logger: client.logger,
-    recursiveRead: true,
-  })
-    .then((plugins) => client.logger.info("Plugins Loader Success!"))
-    .catch(console.error);
+  try {
+    await loadPluginFiles(pluginFolder, pluginFilter, {
+      logger: client.logger,
+      recursiveRead: true,
+    })
+      .then((plugins) => client.logger.info("Plugins Loader Success!"))
+      .catch(console.error);
+
+    await loadScraperFiles(scraperFolder, scraperFilter, {
+    	logger: client.logger,
+    	recursiveRead: true,
+    })
+      .then((plugins) => client.logger.info("Scraper Loader Success!"))
+      .catch(client.logger.error);
+  } catch (error) {
+    client.logger.error("Error:", error.message);
+  }
 
   connectionUpdate(client, WAStart);
   groupEvents(client, store);

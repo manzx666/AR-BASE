@@ -1,6 +1,7 @@
 # Ignore dir directory
 node_modules/
 temp/
+src/scraper/spotify.js
 
 # Ignore lock files for package managers
 package-lock.json

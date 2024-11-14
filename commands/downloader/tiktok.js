@@ -8,7 +8,7 @@ export default {
     ["tiktokwm <url>", "Download dengan watermark"],
   ],
   limit: true,
-  execute: async (m, { client, API }) => {
+  execute: async (m, { client, API, Func }) => {
     if (!m.text) {
       throw {
         message: "⚠️ Silakan masukkan URL TikTok yang ingin diunduh.",
@@ -16,8 +16,10 @@ export default {
       };
     }
 
+    const url = Func.isUrl(m.text)[0];
+
     const tiktokRegex = /(?:https?:\/\/)?(?:www\.|vm\.)?tiktok\.com\/[@\w.-]+/i;
-    if (!tiktokRegex.test(m.text)) {
+    if (!tiktokRegex.test(url)) {
       throw "❌ URL tidak valid! Pastikan URL berasal dari TikTok.";
     }
 
@@ -25,7 +27,7 @@ export default {
       await m.reply("⏳ Sedang memproses, mohon tunggu...");
 
       const response = await API.call("/download/tiktok", {
-        url: m.text,
+        url: url,
       });
 
       if (!response || !response.result) {

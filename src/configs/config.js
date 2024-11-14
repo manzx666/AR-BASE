@@ -4,7 +4,7 @@ config();
 export default {
   owner: ["62895347198105", "6285691464024"],
   pairingNumber: "212781342585",
-  self: true,
+  self: false,
   autoRead: {
     story: true,
     storyEmoji: true,
@@ -18,6 +18,7 @@ export default {
   database: process.env.DATABASE || "",
   mongoURi: process.env.MONGO_URi || "",
   commands: "commands",
+  scrapers: "scraper", 
   msg: {
     owner: "Fitur ini hanya dapat diakses oleh pemilik!",
     group: "Fitur ini hanya dapat diakses di dalam grup!",

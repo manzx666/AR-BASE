@@ -11,6 +11,7 @@ import util from "util";
 import { ArifzynAPI } from "@arifzyn/api";
 import { exec } from "child_process";
 import { plugins } from "./configs/plugins.js";
+import { scrapers } from "./configs/scrapers.js";
 import { loadDatabase } from "./configs/localdb.js";
 import Func from "./lib/function.js";
 
@@ -141,7 +142,7 @@ const handleMessagesUpsert = async (client, store, m, messages) => {
 
       try {
         if (typeof plugin.all === "function") {
-          await plugin.all.call(client, m, { messages, plugins, API });
+          await plugin.all.call(client, m, { messages, plugins, scrapers, API });
         }
 
         if (typeof plugin.before === "function") {
@@ -149,6 +150,7 @@ const handleMessagesUpsert = async (client, store, m, messages) => {
             await plugin.before.call(client, m, {
               messages,
               plugins,
+              scrapers,
               API,
               Func,
             })
@@ -208,6 +210,7 @@ const handleMessagesUpsert = async (client, store, m, messages) => {
               text,
               quoted,
               plugins,
+              scrapers,
               store,
               config,
               API,
