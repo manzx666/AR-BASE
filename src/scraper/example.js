@@ -1,7 +1,7 @@
 import axios from 'axios';
 import cheerio from 'cheerio';
 
-export default const scraperExample = async (url) => {
+const example = async (url) => {
     try {
         const { data } = await axios.get(url); 
         const $ = cheerio.load(data); 
@@ -20,6 +20,7 @@ export default const scraperExample = async (url) => {
     }
 };
 
+export default example
 /* 
  * Example Usage 
  * Scraper Auto Loader 
