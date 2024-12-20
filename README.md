@@ -29,23 +29,23 @@ To configure the bot, you need to create a `.env` file in the project's root dir
 ### Steps:
 
 1. **Copy files `.env.example`:**
-   Inside the project's root directory, find a file named `.env.example`. Copy this file and rename it `.env`.
+Inside the project's root directory, find a file named `.env.example`. Copy this file and rename it `.env`.
 
 ```bash
 cp .env.example .env
 ```
 
 2. **Fill in the environment variables:**
-   Open the `.env` file you just created and fill in the values in the file.
+Open the `.env` file you just created and fill in the values in the file.
 
 ## Installation
 
 1. Clone the repository:
 
-   ```bash
-   git clone https://github.com/Arifzyn19/AR-BASE.git
-   cd AR-BASE
-   ```
+```bash
+git clone https://github.com/Arifzyn19/AR-BASE.git
+cd AR-BASE
+```
 
 2. Install the dependencies:
 
