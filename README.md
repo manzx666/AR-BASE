@@ -135,12 +135,10 @@ Thank you to the following individuals, communities and organizations who have h
 
 ### Developers & Contributors
 
-- [**Arifzyn XD**](https://github.com/Arifzyn19) - Lead developer and project owner, responsible for the main development and overall direction of the project.
+- [**ArifzynXD**](https://github.com/Arifzyn19) - Lead developer and project owner, responsible for the main development and overall direction of the project.
 - [**AmirulDev**](https://github.com/amiruldev20) - Provided inspiration and valuable insights, especially in building bot functionalities using libraries like Baileys.
 - [**DikaArdnt**](https://github.com/DikaArdnt) - Some parts of the codebase were inspired and adapted from his projects, particularly for bot features and backend structure.
 
 ### LICENSE
 
-This project is licensed under the MIT License. See the LICENSE file for details.
-
-Feel free to replace `ArifzynXD` in the installation instructions with your actual GitHub username or the correct repository link. You can also customize any sections as needed to better fit your project's specifics!
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
