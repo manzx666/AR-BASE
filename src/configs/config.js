@@ -2,9 +2,9 @@ import { config } from "dotenv";
 config();
 
 export default {
-  owner: ["62895347198105", "6285691464024"],
-  pairingNumber: "212781342585",
-  self: false,
+  owner: [""], // isi
+  pairingNumber: "", // isi 
+  self: false, 
   autoRead: {
     story: true,
     storyEmoji: true,
@@ -14,8 +14,8 @@ export default {
   storyReadInterval: 1000,
   autoRestart: "350 MB",
   writeStore: false,
-  session: process.env.SESSION || "",
-  database: process.env.DATABASE || "",
+  session: process.env.SESSION || "./.session",
+  database: process.env.DATABASE || "database.json",
   mongoURi: process.env.MONGO_URi || "",
   commands: "commands",
   scrapers: "scraper", 

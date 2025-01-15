@@ -13,6 +13,7 @@ export default async (client, store) => {
       store.groupMetadata = await client.groupFetchAllParticipating();
     }
 
+    /*
     if (
       config.autoRead.story &&
       m.key &&
@@ -45,6 +46,7 @@ export default async (client, store) => {
     if (config.autoRead.message && m.key && !m.key.fromMe) {
       await client.readMessages([m.key]);
     }
+    */
 
     await handleMessagesUpsert(client, store, m, messages);
   });
