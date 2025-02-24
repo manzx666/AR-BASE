@@ -38,7 +38,7 @@ function Client({ client: conn, store }) {
         let messages = await baileys.generateWAMessage(
           m.chat,
           { text: text, mentions: m.mentionedJid },
-          { userJid: conn.user.id, quoted: m.quoted && m.quoted.fakeObj },
+          { userJid: conn.user.id, quoted: m.quoted && m.quoted.fakeObj }
         );
         messages.key.fromMe = baileys.areJidsSameUser(m.sender, conn.user.id);
         messages.key.id = m.key.id;
@@ -58,31 +58,31 @@ function Client({ client: conn, store }) {
           info(...args) {
             console.log(
               chalk.bold.bgRgb(51, 204, 51)("INFO "),
-              chalk.cyan(util.format(...args)),
+              chalk.cyan(util.format(...args))
             );
           },
           error(...args) {
             console.log(
               chalk.bold.bgRgb(247, 38, 33)("ERROR "),
-              chalk.rgb(255, 38, 0)(util.format(...args)),
+              chalk.rgb(255, 38, 0)(util.format(...args))
             );
           },
           warn(...args) {
             console.log(
               chalk.bold.bgRgb(255, 153, 0)("WARNING "),
-              chalk.redBright(util.format(...args)),
+              chalk.redBright(util.format(...args))
             );
           },
           trace(...args) {
             console.log(
               chalk.grey("TRACE "),
-              chalk.white(util.format(...args)),
+              chalk.white(util.format(...args))
             );
           },
           debug(...args) {
             console.log(
               chalk.bold.bgRgb(66, 167, 245)("DEBUG "),
-              chalk.white(util.format(...args)),
+              chalk.white(util.format(...args))
             );
           },
         };
@@ -159,7 +159,7 @@ function Client({ client: conn, store }) {
                 k.endsWith("Message") ||
                 k.endsWith("V2") ||
                 k.endsWith("V3")) &&
-              k !== "senderKeyDistributionMessage",
+              k !== "senderKeyDistributionMessage"
           );
           return key;
         }
@@ -193,8 +193,8 @@ function Client({ client: conn, store }) {
             id === "0@s.whatsapp.net"
               ? { id, name: "WhatsApp" }
               : id === conn.decodeJid(conn?.user?.id)
-                ? conn.user
-                : conn.contacts?.[id] || {};
+              ? conn.user
+              : conn.contacts?.[id] || {};
         }
         return (
           v?.name ||
@@ -203,7 +203,7 @@ function Client({ client: conn, store }) {
           v?.notify ||
           v?.verifiedName ||
           parsePhoneNumber("+" + id.replace("@s.whatsapp.net", "")).format(
-            "INTERNATIONAL",
+            "INTERNATIONAL"
           )
         );
       },
@@ -214,7 +214,11 @@ function Client({ client: conn, store }) {
         for (let v of number) {
           list.push({
             displayName: await conn.getName(v),
-            vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${await conn.getName(v + "@s.whatsapp.net")}\nFN:${await conn.getName(v + "@s.whatsapp.net")}\nitem1.TEL;waid=${v}:${v}\nitem1.X-ABLabel:Ponsel\nitem2.EMAIL;type=INTERNET:contacts@arifzyn.tech\nitem2.X-ABLabel:Email\nitem3.URL:https://api.arifzyn.tech\nitem3.X-ABLabel:Instagram\nitem4.ADR:;;Indonesia;;;;\nitem4.X-ABLabel:Region\nEND:VCARD`,
+            vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${await conn.getName(
+              v + "@s.whatsapp.net"
+            )}\nFN:${await conn.getName(
+              v + "@s.whatsapp.net"
+            )}\nitem1.TEL;waid=${v}:${v}\nitem1.X-ABLabel:Ponsel\nitem2.EMAIL;type=INTERNET:contacts@arifzyn.tech\nitem2.X-ABLabel:Email\nitem3.URL:https://api.arifzyn.tech\nitem3.X-ABLabel:Instagram\nitem4.ADR:;;Indonesia;;;;\nitem4.X-ABLabel:Region\nEND:VCARD`,
           });
         }
         return conn.sendMessage(
@@ -229,7 +233,7 @@ function Client({ client: conn, store }) {
               : [conn.decodeJid(conn.user?.id)],
             ...options,
           },
-          { quoted, ...options },
+          { quoted, ...options }
         );
       },
       enumerable: true,
@@ -238,7 +242,7 @@ function Client({ client: conn, store }) {
       value(text) {
         return (
           [...text.matchAll(/@([0-9]{5,16}|0)/g)].map(
-            (v) => v[1] + "@s.whatsapp.net",
+            (v) => v[1] + "@s.whatsapp.net"
           ) || []
         );
       },
@@ -263,7 +267,7 @@ function Client({ client: conn, store }) {
           message = message.msg;
         }
         return await baileys.toBuffer(
-          await baileys.downloadContentFromMessage(message, mime),
+          await baileys.downloadContentFromMessage(message, mime)
         );
       },
       enumerable: true,
@@ -287,7 +291,7 @@ function Client({ client: conn, store }) {
         quoted,
         ptt = false,
         options = {},
-        smlcap = { smlcap: true },
+        smlcap = { smlcap: true }
       ) {
         let isSmlcap = global.db.settings.smlcap && smlcap.smlcap;
         let ephemeral =
@@ -363,7 +367,7 @@ function Client({ client: conn, store }) {
             m = await conn.sendMessage(
               jid,
               { ...message, [mtype]: file },
-              { ...opt, ...options, ephemeralExpiration: ephemeral },
+              { ...opt, ...options, ephemeralExpiration: ephemeral }
             );
           file = null; // releasing the memory
           return m;
@@ -382,16 +386,16 @@ function Client({ client: conn, store }) {
         const data = Buffer.isBuffer(PATH)
           ? PATH
           : PATH instanceof ArrayBuffer
-            ? PATH.toBuffer()
-            : /^data:.*?\/.*?;base64,/i.test(PATH)
-              ? Buffer.from(PATH.split`,`[1], "base64")
-              : /^https?:\/\//.test(PATH)
-                ? await (res = await Function.getFile(PATH)).data
-                : fs.existsSync(PATH)
-                  ? ((filename = PATH), fs.readFileSync(PATH))
-                  : typeof PATH === "string"
-                    ? PATH
-                    : Buffer.alloc(0);
+          ? PATH.toBuffer()
+          : /^data:.*?\/.*?;base64,/i.test(PATH)
+          ? Buffer.from(PATH.split`,`[1], "base64")
+          : /^https?:\/\//.test(PATH)
+          ? await (res = await Function.getFile(PATH)).data
+          : fs.existsSync(PATH)
+          ? ((filename = PATH), fs.readFileSync(PATH))
+          : typeof PATH === "string"
+          ? PATH
+          : Buffer.alloc(0);
         if (!Buffer.isBuffer(data))
           throw new TypeError("Result is not a buffer");
         const type = (await fileTypeFromBuffer(data)) || {
@@ -401,7 +405,7 @@ function Client({ client: conn, store }) {
         if (data && saveToFile && !filename)
           (filename = path.join(
             __dirname,
-            "../../temp/" + new Date() * 1 + "." + type.ext,
+            "../../temp/" + new Date() * 1 + "." + type.ext
           )),
             await fs.promises.writeFile(filename, data);
         return {
@@ -462,7 +466,7 @@ function Client({ client: conn, store }) {
         else if (options.asSticker || /webp/.test(mime)) {
           let pathFile = await writeExif(
             { mimetype, data: buffer },
-            { ...options },
+            { ...options }
           );
           data = {
             sticker: fs.readFileSync(pathFile),
@@ -542,7 +546,7 @@ function Client({ client: conn, store }) {
             },
             ...options,
           },
-          { ...options },
+          { ...options }
         );
       },
       enumerable: true,
@@ -601,7 +605,7 @@ function Client({ client: conn, store }) {
         groupName,
         jpegThumbnail,
         caption = "Invitation to join my WhatsApp Group",
-        options = {},
+        options = {}
       ) {
         const media = await baileys.prepareWAMessageMedia(
           {
@@ -609,7 +613,7 @@ function Client({ client: conn, store }) {
           },
           {
             upload: conn.waUploadToServer,
-          },
+          }
         );
         const message = baileys.proto.Message.fromObject({
           groupJid,
@@ -643,12 +647,12 @@ function Client({ client: conn, store }) {
             if (/image/i.test(mime)) {
               media = await prepareWAMessageMedia(
                 { image: buffer },
-                { upload: conn.waUploadToServer },
+                { upload: conn.waUploadToServer }
               );
             } else if (/video/i.test(mime)) {
               media = await prepareWAMessageMedia(
                 { video: buffer },
-                { upload: conn.waUploadToServer },
+                { upload: conn.waUploadToServer }
               );
             }
             header = {
@@ -693,7 +697,7 @@ function Client({ client: conn, store }) {
               },
             },
           },
-          { quoted, userJid: quoted.key.remoteJid },
+          { quoted, userJid: quoted.key.remoteJid }
         );
         conn.relayMessage(jid, msg.message, {
           messageId: msg.key.id,
@@ -730,7 +734,7 @@ function Client({ client: conn, store }) {
                 quoted,
                 false,
                 false,
-                smlcap,
+                smlcap
               );
         } else {
           return Buffer.isBuffer(text)
@@ -743,7 +747,7 @@ function Client({ client: conn, store }) {
                     : text,
                   ...options,
                 },
-                { quoted, ...options, ephemeralExpiration: ephemeral },
+                { quoted, ...options, ephemeralExpiration: ephemeral }
               );
         }
       },
@@ -759,7 +763,7 @@ function Client({ client: conn, store }) {
         quoted,
         large = true,
         options = {},
-        smlcap = { smlcap: true },
+        smlcap = { smlcap: true }
       ) {
         let isSmlcap = global.db.settings.smlcap && smlcap.smlcap;
         let ephemeral =
@@ -787,7 +791,7 @@ function Client({ client: conn, store }) {
               },
             },
           },
-          { quoted: quoted, ...options, ephemeralExpiration: ephemeral },
+          { quoted: quoted, ...options, ephemeralExpiration: ephemeral }
         );
       },
       enumerable: true,
@@ -800,7 +804,7 @@ function Client({ client: conn, store }) {
         list = [],
         m,
         options = {},
-        smlcap = { smlcap: true },
+        smlcap = { smlcap: true }
       ) {
         if (!Array.isArray(list)) {
           list = [];
@@ -831,7 +835,7 @@ ${list
             m,
             false,
             options,
-            smlcap,
+            smlcap
           );
         } else {
           await conn.reply(jid, caption, m, options, smlcap);
@@ -852,7 +856,7 @@ ${list
         list = [],
         m,
         options = {},
-        smlcap = { smlcap: true },
+        smlcap = { smlcap: true }
       ) {
         if (!Array.isArray(list)) {
           list = [];
@@ -860,7 +864,9 @@ ${list
         let caption = `
 ${text}
 
-Silahkan Reply/Balas pesan ini dengan *${list.length > 0 ? list[0][1] : ""}*${list.length > 1 ? ` atau *${list[1][1]}*` : ""}
+Silahkan Reply/Balas pesan ini dengan *${list.length > 0 ? list[0][1] : ""}*${
+          list.length > 1 ? ` atau *${list[1][1]}*` : ""
+        }
 `.trim();
         let metadata = toSHA256(caption);
         if (image) {
@@ -872,7 +878,7 @@ Silahkan Reply/Balas pesan ini dengan *${list.length > 0 ? list[0][1] : ""}*${li
             m,
             false,
             options,
-            smlcap,
+            smlcap
           );
         } else {
           await conn.reply(jid, caption, m, options, smlcap);
@@ -893,7 +899,7 @@ Silahkan Reply/Balas pesan ini dengan *${list.length > 0 ? list[0][1] : ""}*${li
         input,
         m,
         options = {},
-        smlcap = { smlcap: true },
+        smlcap = { smlcap: true }
       ) {
         let caption = `
 ${text}
@@ -908,7 +914,7 @@ ${text}
             m,
             false,
             options,
-            smlcap,
+            smlcap
           );
         } else {
           await conn.reply(jid, caption, m, options, smlcap);
@@ -926,7 +932,7 @@ ${text}
         let messages = await generateWAMessage(
           m.chat,
           { text, mentions: await conn.parseMention(text) },
-          { userJid: who, quoted: m.quoted && m.quoted.fakeObj },
+          { userJid: who, quoted: m.quoted && m.quoted.fakeObj }
         );
         messages.key.fromMe = baileys.areJidsSameUser(who, conn.user.id);
         messages.key.id = m.key.id;
@@ -935,7 +941,7 @@ ${text}
         let msg = {
           ...chatupdate,
           messages: [proto.WebMessageInfo.fromObject(messages)].map(
-            (v) => ((v.conn = this), v),
+            (v) => ((v.conn = this), v)
           ),
           type: "append",
         };
@@ -1025,7 +1031,7 @@ ${text}
         sourceUrl,
         quoted,
         LargerThumbnail = true,
-        AdAttribution = true,
+        AdAttribution = true
       ) {
         return conn.sendMsg(
           jid,
@@ -1047,7 +1053,7 @@ ${text}
             },
             text,
           },
-          { quoted },
+          { quoted }
         );
       },
       enumerable: false,
@@ -1063,7 +1069,7 @@ ${text}
         sourceUrl,
         body = "",
         LargerThumbnail = true,
-        AdAttribution = true,
+        AdAttribution = true
       ) {
         return await conn.sendMsg(
           jid,
@@ -1081,7 +1087,7 @@ ${text}
               },
             },
           },
-          { quoted: m },
+          { quoted: m }
         );
       },
       enumerable: false,
@@ -1091,6 +1097,19 @@ ${text}
   if (conn.user?.id) conn.user.jid = conn.decodeJid(conn.user?.id);
   return conn;
 }
+
+const groupCache = new Map();
+async function cacheGroupMetadata(conn, jid) {
+  if (groupCache.has(jid)) {
+    return groupCache.get(jid);
+  }
+  const metadata = await conn.groupMetadata(jid);
+  groupCache.set(jid, metadata);
+
+  setTimeout(() => groupCache.delete(jid), 60000);
+  return metadata;
+}
+
 async function Serialize(conn, msg) {
   const m = {};
   const botNumber = conn.decodeJid(conn.user?.id);
@@ -1111,23 +1130,23 @@ async function Serialize(conn, msg) {
     m.isGroup = m.chat.endsWith("@g.us");
     m.participant = !m.isGroup ? false : m.key.participant;
     m.sender = conn.decodeJid(
-      m.fromMe ? conn.user.id : m.isGroup ? m.participant : m.chat,
+      m.fromMe ? conn.user.id : m.isGroup ? m.participant : m.chat
     );
   }
   m.pushName = msg.pushName;
   m.isOwner =
     m.sender &&
     [...config.owner, botNumber.split("@")[0]].includes(
-      m.sender.replace(/\D+/g, ""),
+      m.sender.replace(/\D+/g, "")
     );
   if (m.isGroup) {
-    m.metadata = await conn.groupMetadata(m.chat);
+    m.metadata = await cacheGroupMetadata(conn, m.chat);
     m.admins = m.metadata.participants.reduce(
       (memberAdmin, memberNow) =>
         (memberNow.admin
           ? memberAdmin.push({ id: memberNow.id, admin: memberNow.admin })
           : [...memberAdmin]) && memberAdmin,
-      [],
+      []
     );
     m.isAdmin = !!m.admins.find((member) => member.id === m.sender);
     m.isBotAdmin = !!m.admins.find((member) => member.id === botNumber);
@@ -1198,8 +1217,8 @@ async function Serialize(conn, msg) {
       (typeof msg.messageTimestamp === "number"
         ? msg.messageTimestamp
         : msg.messageTimestamp.low
-          ? msg.messageTimestamp.low
-          : msg.messageTimestamp.high) || m.msg.timestampMs * 1000;
+        ? msg.messageTimestamp.low
+        : msg.messageTimestamp.high) || m.msg.timestampMs * 1000;
     m.isMedia = !!m.msg?.mimetype || !!m.msg?.thumbnailDirectPath;
     if (m.isMedia) {
       m.mime = m.msg?.mimetype;
@@ -1231,7 +1250,7 @@ async function Serialize(conn, msg) {
               mentions: [m.sender, ...conn.parseMention(text)],
               ...options,
             },
-            { quoted, ephemeralExpiration: m.expiration, ...options },
+            { quoted, ephemeralExpiration: m.expiration, ...options }
           );
         } else {
           return conn.sendMedia(m.chat, data.data, quoted, {
@@ -1248,7 +1267,7 @@ async function Serialize(conn, msg) {
             mentions: [m.sender, ...conn.parseMention(text)],
             ...options,
           },
-          { quoted, ephemeralExpiration: m.expiration, ...options },
+          { quoted, ephemeralExpiration: m.expiration, ...options }
         );
       }
     };
@@ -1263,7 +1282,7 @@ async function Serialize(conn, msg) {
     m.isQuoted = true;
     m.quoted = {};
     m.quoted.message = baileys.extractMessageContent(
-      m.msg?.contextInfo?.quotedMessage,
+      m.msg?.contextInfo?.quotedMessage
     );
     if (m.quoted.message) {
       m.quoted.type =
@@ -1279,7 +1298,7 @@ async function Serialize(conn, msg) {
           : false,
         fromMe: baileys.areJidsSameUser(
           conn.decodeJid(m.msg?.contextInfo?.participant),
-          conn.decodeJid(conn.user?.id),
+          conn.decodeJid(conn.user?.id)
         ),
         id: m.msg?.contextInfo?.stanzaId,
       };
@@ -1296,22 +1315,22 @@ async function Serialize(conn, msg) {
       m.quoted.isOwner =
         m.quoted.sender &&
         [...config.owner, botNumber.split("@")[0]].includes(
-          m.quoted.sender.replace(/\D+/g, ""),
+          m.quoted.sender.replace(/\D+/g, "")
         );
       if (m.quoted.isGroup) {
-        m.quoted.metadata = await conn.groupMetadata(m.quoted.from);
+        m.quoted.metadata = await cacheGroupMetadata(conn, m.quoted.from);
         m.quoted.admins = m.quoted.metadata.participants.reduce(
           (memberAdmin, memberNow) =>
             (memberNow.admin
               ? memberAdmin.push({ id: memberNow.id, admin: memberNow.admin })
               : [...memberAdmin]) && memberAdmin,
-          [],
+          []
         );
         m.quoted.isAdmin = !!m.quoted.admins.find(
-          (member) => member.id === m.quoted.sender,
+          (member) => member.id === m.quoted.sender
         );
         m.quoted.isBotAdmin = !!m.quoted.admins.find(
-          (member) => member.id === botNumber,
+          (member) => member.id === botNumber
         );
       }
       m.quoted.mentions = m.quoted.msg?.contextInfo?.mentionedJid || [];
@@ -1327,9 +1346,7 @@ async function Serialize(conn, msg) {
         m.quoted.msg?.title ||
         m.quoted?.msg?.name ||
         "";
-      m.quoted.prefix = /^[°•π÷×¶∆£¢€¥®™+✓_|~!?@#%^&.©^]/gi.test(
-        m.quoted.body,
-      )
+      m.quoted.prefix = /^[°•π÷×¶∆£¢€¥®™+✓_|~!?@#%^&.©^]/gi.test(m.quoted.body)
         ? m.quoted.body.match(/^[°•π÷×¶∆£¢€¥®™+✓_|~!?@#%^&.©^]/gi)[0]
         : ".";
       m.quoted.command =
@@ -1345,7 +1362,7 @@ async function Serialize(conn, msg) {
           .trim()
           .replace(
             new RegExp("^" + Function.escapeRegExp(m.quoted.prefix), "i"),
-            "",
+            ""
           )
           .replace(m.quoted.command, "")
           .split(/ +/)
@@ -1386,7 +1403,7 @@ async function Serialize(conn, msg) {
           text: String(text),
           mentions: await conn.parseMention(text),
         },
-        { quoted: m },
+        { quoted: m }
       );
       if (typeof cb === "function") {
         /**
@@ -1419,7 +1436,7 @@ function protoType() {
   Buffer.prototype.toArrayBufferV2 = function toArrayBuffer() {
     return this.buffer.slice(
       this.byteOffset,
-      this.byteOffset + this.byteLength,
+      this.byteOffset + this.byteLength
     );
   };
   ArrayBuffer.prototype.toBuffer = function toBuffer() {

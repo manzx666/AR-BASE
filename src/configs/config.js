@@ -2,9 +2,9 @@ import { config } from "dotenv";
 config();
 
 export default {
-  owner: [""], // isi
-  pairingNumber: "", // isi 
-  self: false, 
+  owner: ["6285691464024"], // isi
+  pairingNumber: "6285691464024", // isi 
+  self: true, 
   autoRead: {
     story: true,
     storyEmoji: true,
